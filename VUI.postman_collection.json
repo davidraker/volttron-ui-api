@@ -1,0 +1,3451 @@
+{
+	"info": {
+		"_postman_id": "e59ae9eb-7aaa-4248-90ea-50d7283adcc0",
+		"name": "VUI",
+		"description": "The VOLTTRON User Interface API.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "/authenticate",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "9c7e86cb-1638-4743-9d63-5b4eb1eac5c8",
+								"exec": [
+									"postman.setEnvironmentVariable(\"token\", responseBody);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"{{username}}\",\n    \"password\": \"{{password}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "{{base_url}}/authenticate",
+						"description": "Built-in authorization endpoint for VOLTTRON web subsystem.\nReturns JWT bearer token.\n\n**Request:**\n* Content Type: `application/json`\n* Body:\n    ```\n    {\n        \"username\": \"<username>\",\n        \"password\": \"<password>\"\n    }\n    ```\n\n**Response:**\n* With valid username and password: `200 OK`\n    * Content Type: `text/plain`\n    * Body:\n        ```\n        <jwt_token>\n        ```\n\n* With invalid username and password: `401 Unauthorized`"
+					},
+					"response": []
+				},
+				{
+					"name": "/authenticate",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "0251cf5b-1421-42be-9f86-fcb6967d04dd",
+								"exec": [
+									"var jsonData = JSON.parse(responseBody);",
+									"postman.setEnvironmentVariable(\"token\", jsonData.token);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"{{username}}\",\n    \"password\": \"{{password}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "{{base_url}}/authenticate",
+						"description": "Renew authorization token.\n\nUser provides credentials again, with current token to renew the same session.\n\nReturns new JWT bearer token. All subsequent requests should include the new token. The old bearer token is no longer considered valid.\n\n**Request:**\n* Content Type: `application/json`\n* Authorization: `BEARER <jwt_token>`\n* Body:\n    ```\n    {\n        \"username\": \"<username>\",\n        \"password\": \"<password>\"\n    }\n    ```\n\n**Response:**\n* With valid username and password: `200 OK`\n    - Content Type: `text/plain`\n    - Body:\n        ```\n        <new_jwt_token>\n        ```\n\n* With invalid or mismatched username, password, or token: `401 Unauthorized`"
+					},
+					"response": []
+				},
+				{
+					"name": "/authenticate",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "9331ffc0-6ec3-4d1b-90c4-5d3153bcb561",
+								"exec": [
+									"postman.setEnvironmentVariable(\"token\", null);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "{{base_url}}/authenticate",
+						"description": "Log out of API. Bearer token will be invalidated, and any session will data be cleared.\n\n**Request:**\n* Authorization: `BEARER <jwt_token>`\n\n**Response:**\n* With valid username and password: `200 OK`\n* With invalid token: `401 Unauthorized`"
+					},
+					"response": []
+				}
+			],
+			"description": "The authentication endpoints are provided by the VOLTTRON master web service.  \n\n* Authentication is required before using other API endpoints, which must be accessed using the JWT bearer token provided by the `POST /authenticate` endpoint.\n\n* The token will expire afer some time, and to avoid loss of any session which is established by other endpoints, the session must be renewed using the `PUT /authenticate` endpoint.\n\n* Sessions may be manually ended by calling the `DEL /authenticate` endpoint.",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "54333426-a563-45d0-976a-fee9c6c2e45d",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "609db92a-8562-407d-ac81-de4fd2e3157a",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "Platforms",
+			"item": [
+				{
+					"name": "PubSub",
+					"item": [
+						{
+							"name": "/platforms/:platform/pubsub",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/platforms/:platform/pubsub",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"platforms",
+										":platform",
+										"pubsub"
+									],
+									"variable": [
+										{
+											"key": "platform",
+											"value": "sekhmet"
+										}
+									]
+								},
+								"description": "Retrieve routes for message bus topics being monitored by this user of the VUI API.\n\n**Request:**\n* Authorization: `BEARER <jwt_token>`\n\n**Response:**\n* With valid BEARER token on success: `200 OK`\n    * Body:\n        ```\n            [\n                \"/platform/:platform/pubsub/:topic\",\n                \"/platform/:platform/pubsub/:topic\",\n                ...\n            ]\n        ```\n\n* With valid BEARER token on failure: `400 Bad Request`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"error\": \"<Error Message>\"\n        }\n        ```\n* With invalid BEARER token: `401 Unauthorized`"
+							},
+							"response": []
+						},
+						{
+							"name": "/platforms/:platform/pubsub/:topic",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/platforms/:platform/pubsub/:topic",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"platforms",
+										":platform",
+										"pubsub",
+										":topic"
+									],
+									"variable": [
+										{
+											"key": "platform",
+											"value": "sekhmet"
+										},
+										{
+											"key": "topic",
+											"value": "/campus/building/device/all"
+										}
+									]
+								},
+								"description": "Return the subscription to the topic.\n\n**Request:**\n* Authorization: `BEARER <jwt_token>`\n\n**Response:**\n* With valid BEARER token if subscription exists: `200 OK`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n        \"topic\": \"<topic\">,\n        \"push_bind\": <bind_object> or null,\n        \"last_value\": <last_value>,\n        \"number_of_subscribers\": <number_of_open_subscriptions_to_topic>\n        }       \n        ```\n* With valid BEARER token on failure: `400 Bad Request`\n    * Content Type: `application/json`\n    * Body:\n        {\n            \"error\": \"<Error Message>\"\n        }\n- With invalid BEARER token: `401 Unauthorized`"
+							},
+							"response": []
+						},
+						{
+							"name": "/platforms/:platform/pubsub/:topic",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/platforms/:platform/pubsub/:topic",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"platforms",
+										":platform",
+										"pubsub",
+										":topic"
+									],
+									"variable": [
+										{
+											"key": "platform",
+											"value": ""
+										},
+										{
+											"key": "topic",
+											"value": ""
+										}
+									]
+								},
+								"description": "Create the specified subscription. Returns details. For publishing to the topic, see the `PUT /platforms/:platform/pubsub/:topic` endpoint.\n\n**Request:**\n* Content Type: `application/json`\n* Authorization: `BEARER <jwt_token>`\n* Body:\n    ```\n    {\n        \"push_bind\": <bind_object> or null\n    }\n    ```\n\n**Response:**\n* With valid BEARER token on success: `201 Created`\n    * Content Type: `application/json`\n    * Location: `<resource_location>`\n    * Body:\n        ```\n        {\n\t\t    \"topic\": \"<topic>\",\n            \"push_bind\": <bind_obaject> or null,\n            \"last_value\": \"<last_value>\",\n            \"access_token\": <JWT_access_token_for_resource>\n        }\n        ```\n* With valid BEARER token on failure: `400 Bad Request`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"error\": \"<Error Message>\"\n        }\n        ```\n* With invalid BEARER token: `401 Unauthorized`"
+							},
+							"response": []
+						},
+						{
+							"name": "/platforms/:platform/pubsub/:topic",
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/platforms/:platform/pubsub/:topic",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"platforms",
+										":platform",
+										"pubsub",
+										":topic"
+									],
+									"variable": [
+										{
+											"key": "platform",
+											"value": "sekhmet"
+										},
+										{
+											"key": "topic",
+											"value": "/campus/building/device/all"
+										}
+									]
+								},
+								"description": "Unsubscribe to the topic.\n\nNOTE: If multiple subscriptions are open to the same topic, the server should remove this subscriber but keep the subscription resource open.\n\n**Request:**\n* Authorization: `BEARER <jwt_token>`\n\n**Response:**\n* With valid BEARER token on success: `204 No Content`\n* With valid BEARER token on failure: `400 Bad Request`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"error\": \"<Error Message>\"\n        }\n        ```\n* With invalid BEARER token: `401 Unauthorized`"
+							},
+							"response": []
+						},
+						{
+							"name": "/platforms/:platform/pubsub/:topic",
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"value\": 5\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/platforms/:platform/pubsub/:topic",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"platforms",
+										":platform",
+										"pubsub",
+										":topic"
+									],
+									"variable": [
+										{
+											"key": "platform",
+											"value": "sekhmet"
+										},
+										{
+											"key": "topic",
+											"value": "/campus/building/device/point"
+										}
+									]
+								},
+								"description": "Publish to the specified topic on the specified platform and return confirmation details.\n\nThe value given in the request body must contain the intended publish body. This may be a single value or dictionary as expected by subscribers to the topic. The publish_type will be used in formatting the publish before it reaches the message bus. If a dictionary is provided for the value and no publish_type is given, the publish will be treated as a record type.\n\n**Request:**\n* Content Type: `application/json`\n* Authorization: `BEARER <jwt_token>`\n* Body:\n    ```\n    {\n        \"headers\": {<message_bus_headers>},\n        \"publish_type\": \"<datalogger|device|analysis|record>\"\n        \"value\": <value>\n    }\n    ```\n\n**Response:**\n* With valid BEARER token on success: `200 OK`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"number_of_subsribers\": <number_of_subsribers>\n        }\n        ```\n* With valid BEARER token on failure: `400 Bad Request`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"error\": \"<Error Message>\"\n        }\n        ```\n* With invalid BEARER token: `401 Unauthorized`"
+							},
+							"response": []
+						}
+					],
+					"description": "PubSub endpoints expose functionality associated with publication and subscription to topics on the VOLTTRON message bus.\n\n* All PubSub endpoints require a JWT bearer token obtained through the `POST /authenticate` or `PUT /authenticate` endpoints.\n",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "ab4ed92a-4d1a-4b02-9bfa-5fc6b5aea1cc",
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "0605fbae-bcb4-49d7-9f6c-ed378cd3ef41",
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
+						}
+					],
+					"protocolProfileBehavior": {},
+					"_postman_isSubFolder": true
+				},
+				{
+					"name": "Agents",
+					"item": [
+						{
+							"name": "RPC",
+							"item": [
+								{
+									"name": "/platforms/:platform/agents/:vip_identity/rpc",
+									"request": {
+										"method": "GET",
+										"header": [],
+										"url": {
+											"raw": "{{base_url}}/platforms/:platform/agents/:vip_identity",
+											"host": [
+												"{{base_url}}"
+											],
+											"path": [
+												"platforms",
+												":platform",
+												"agents",
+												":vip_identity"
+											],
+											"variable": [
+												{
+													"key": "platform",
+													"value": "sekhmet"
+												},
+												{
+													"key": "vip_identity",
+													"value": "platform.listener"
+												}
+											]
+										},
+										"description": "Get available remote procedure call endpoints for the specified agent.\n\nSuccess will yield a dictionary with available RPC methods as keys and routes for these as values.\n\n**Request:**\n* Authorization: `BEARER <jwt_token>`\n\n**Response:**\n* With valid BEARER token on success: `200 OK`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"<function_name>\": \"/platforms/:platform/agents/:vip_identity\"/rpc/:function_name\",\n            \"<function_name>\": \"/platforms/:platform/agents/:vip_identity\"/rpc/:function_name\",\n             ...\n        }\n        ```\n* With valid BEARER token on failure: `400 Bad Request`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"error\": \"<Error Message>\"\n        }\n        ```\n* With invalid BEARER token: `401 Unauthorized`"
+									},
+									"response": []
+								},
+								{
+									"name": "/platforms/:platform/agents/:vip_identity/rpc/:function_name",
+									"request": {
+										"method": "GET",
+										"header": [],
+										"url": {
+											"raw": "{{base_url}}/platforms/:platform/agents/:vip_identity/rpc/:function_name",
+											"host": [
+												"{{base_url}}"
+											],
+											"path": [
+												"platforms",
+												":platform",
+												"agents",
+												":vip_identity",
+												"rpc",
+												":function_name"
+											],
+											"variable": [
+												{
+													"key": "platform",
+													"value": "sekhmet"
+												},
+												{
+													"key": "vip_identity",
+													"value": "agent.bess"
+												},
+												{
+													"key": "function_name",
+													"value": "start"
+												}
+											]
+										},
+										"description": "Get parameters for an remote procedure call method.\n\n**Request:**\n* Authorization: `BEARER <jwt_token>`\n\n\n**Response:**\n* With valid BEARER token on success: `200 OK`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"param1\": <type>,\n            \"param2\": <type>\n        }\n        ```\n* With valid BEARER token on failure: `400 Bad Request`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"error\": \"<Error Message>\"\n        }\n        ```\n* With invalid BEARER token: `401 Unauthorized`"
+									},
+									"response": []
+								},
+								{
+									"name": "/platforms/:platform/agents/:vip_identity/rpc/:function_name",
+									"request": {
+										"method": "POST",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"desired_command\": 30,\n    \"pf\": 0\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{base_url}}/platforms/:platform/agents/:vip_identity/rpc/:function_name",
+											"host": [
+												"{{base_url}}"
+											],
+											"path": [
+												"platforms",
+												":platform",
+												"agents",
+												":vip_identity",
+												"rpc",
+												":function_name"
+											],
+											"variable": [
+												{
+													"key": "platform",
+													"value": "sekhmet"
+												},
+												{
+													"key": "vip_identity",
+													"value": "agent.bess"
+												},
+												{
+													"key": "function_name",
+													"value": "charge"
+												}
+											]
+										},
+										"description": "Send an remote procedure  call to an agent running on a VOLTTRON platform.\n\nThe return value of an RPC call is defined by the agent, so this may be a scalar value or another JSON object, for instance a list, dictionary, etc.\n\n**Request:**\n* Content Type: `application/json`\n* Authorization: `BEARER <jwt_token>`\n* Body:\n    ```\n    {\n        \"<param_name\": <value>,\n        \"<param_name\": <value>,\n         ...\n    }\n    ```\n\n**Response:**\n* With valid BEARER token on success: `200 OK`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"return\": <value>\n        }\n        ```\n* With valid BEARER token on failure: `400 Bad Request`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"error\": \"<Error Message>\"\n        }\n        ```\n* With invalid BEARER token: `401 Unauthorized`"
+									},
+									"response": []
+								}
+							],
+							"description": "RPC endpoints expose functionality associted with remote procedure calls to agents running on a VOLTTRON platform.\n\n* All RPC endpoints require a JWT bearer token obtained through the `POST /authenticate` or `PUT /authenticate` endpoints.\n",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "71f1914c-2e9b-4209-b597-ceb3c0229618",
+										"type": "text/javascript",
+										"exec": [
+											""
+										]
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"id": "9e535ba6-2613-40e2-b053-589a55c13f31",
+										"type": "text/javascript",
+										"exec": [
+											""
+										]
+									}
+								}
+							],
+							"protocolProfileBehavior": {},
+							"_postman_isSubFolder": true
+						},
+						{
+							"name": "Configs",
+							"item": [
+								{
+									"name": "/platforms/:platform/agents/:vip_identity/configs",
+									"request": {
+										"method": "GET",
+										"header": [],
+										"url": {
+											"raw": "{{base_url}}/platforms/:platform/agents/:vip_identity/configs",
+											"host": [
+												"{{base_url}}"
+											],
+											"path": [
+												"platforms",
+												":platform",
+												"agents",
+												":vip_identity",
+												"configs"
+											],
+											"variable": [
+												{
+													"key": "platform",
+													"value": "sekhmet"
+												},
+												{
+													"key": "vip_identity",
+													"value": "platform.listener"
+												}
+											]
+										},
+										"description": "Get routes to available configuration files for the specified agent.\n\n**Request:**\n* Authorization: `BEARER <jwt_token>`\n\n**Response:**\n* With valid BEARER token on success: `200 OK`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \":config_file_name\": \"/platforms/:platform/agents/:vip_identity\"/configs/:config_file_name\",\n            \"<config_file_name>\": \"/platforms/:platform/agents/:vip_identity\"/configs/:config_file_name\",\n            ...\n        }\n        ```\n* With valid BEARER token on failure: `400 Bad Request`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"error\": \"<Error Message>\"\n        }\n        ```\n* With invalid BEARER token: `401 Unauthorized`"
+									},
+									"response": []
+								},
+								{
+									"name": "/platforms/:platform/agents/:vip_identity/configs",
+									"request": {
+										"method": "POST",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"setting1\": 30,\n    \"setting2\": 0\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{base_url}}/platforms/:platform/agents/:vip_identity/configs",
+											"host": [
+												"{{base_url}}"
+											],
+											"path": [
+												"platforms",
+												":platform",
+												"agents",
+												":vip_identity",
+												"configs"
+											],
+											"query": [
+												{
+													"key": "file-name",
+													"value": "null",
+													"disabled": true
+												}
+											],
+											"variable": [
+												{
+													"key": "platform",
+													"value": "sekhmet"
+												},
+												{
+													"key": "vip_identity",
+													"value": "agent.bess"
+												}
+											]
+										},
+										"description": "Save a new configuration file to the config store.\n\nThe file name should be passed in the query parameter `file-name`.\n\nThe file should match the content type and contents which the VOLTTRON configuration store expects. The configuration store currently accepts only JSON, CSV, or RAW files. The content type header should match the type of file being sent. Optionally, this endpoint may return `409 Conflict` if the configuration file already exists.  In this case, the user should use `PUT /platforms/:platform/agents/:vip_identity/configs/:file_name` if modification of the existing file is truly intended.\n\n**Request:**\n* Content Type: `application/json` or `text/csv` or `text/plain`\n* Authorization: `BEARER <jwt_token>`\n* Body (shown for JSON conntent):\n    ```\n    {\n        \"<setting_name>\": <value>,\n        \"<setting_name>\": <value>,\n        ...\n    }\n    ```\n\n**Response:**\n* With valid BEARER token on success: `201 Created`\n    * Location: `/platforms/:platform/agents/:vip_identity/configs/:file_name`\n    * Content Type: `application/json`\n\n* With valid BEARER token on failure: `400 Bad Request`, `409 Conflict`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"error\": \"<Error Message>\"\n        }\n        ```\n* With invalid BEARER token: `401 Unauthorized`"
+									},
+									"response": []
+								},
+								{
+									"name": "/platforms/:platform/agents/:vip_identity/configs/:file_name",
+									"request": {
+										"method": "GET",
+										"header": [],
+										"url": {
+											"raw": "{{base_url}}/platforms/:platform/agents/:vip_identity/configs/:file_name",
+											"host": [
+												"{{base_url}}"
+											],
+											"path": [
+												"platforms",
+												":platform",
+												"agents",
+												":vip_identity",
+												"configs",
+												":file_name"
+											],
+											"variable": [
+												{
+													"key": "platform",
+													"value": "sekhmet"
+												},
+												{
+													"key": "vip_identity",
+													"value": "agent.bess"
+												},
+												{
+													"key": "file_name",
+													"value": "config"
+												}
+											]
+										},
+										"description": "Get a configuration file for the agent from the config store.\n\nThe configuration store can currently return JSON, CSV, or RAW files.  If the Accept header is not set, the configuration store will return JSON by default. If the client wishes to restrict the type of file received, it should set the Accept header to the correct MIME type(s).\n\n**Request:**\n* Authorization: `BEARER <jwt_token>`\n\n**Response:**\n* With valid BEARER token on success: `200 OK`\n    * Content Type: `application/json`\n    * Accept: `application/json`, `text/csv`, `text/plain`\n    * Body:\n        ```\n        {\n          \"<setting_name>\": <value>,\n          \"<setting_name>\": <value>,\n          ...\n        }\n        ```\n* With valid BEARER token on failure: `400 Bad Request`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"error\": \"<Error Message>\"\n        }\n        ```\n* With invalid BEARER token: `401 Unauthorized`"
+									},
+									"response": []
+								},
+								{
+									"name": "/platforms/:platform/agents/:vip_identity/configs/:file_name",
+									"request": {
+										"method": "PUT",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"setting1\": 30,\n    \"setting2\": 0\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{base_url}}/platforms/:platform/agents/:vip_identity/configs/:file_name",
+											"host": [
+												"{{base_url}}"
+											],
+											"path": [
+												"platforms",
+												":platform",
+												"agents",
+												":vip_identity",
+												"configs",
+												":file_name"
+											],
+											"variable": [
+												{
+													"key": "platform",
+													"value": "sekhmet"
+												},
+												{
+													"key": "vip_identity",
+													"value": "agent.bess"
+												},
+												{
+													"key": "file_name",
+													"value": "config"
+												}
+											]
+										},
+										"description": "Overwrite a configuration file already in the config store.\n\nThe file should match the content type and contents which the VOLTTRON configuration store expects. The configuration store currently accepts only JSON, CSV, or RAW files. The content type header should match the type of file being sent.\n\n**Request:**\n* Content Type: `application/json` or `text/csv` or `text/plain`\n* Authorization: `BEARER <jwt_token>`\n* Body:\n    ```\n    {\n        \"<setting_name>\": <value>,\n        \"<setting_name>\": <value>,\n        ...\n    }\n    ```\n\n**Response:**\n* With valid BEARER token on success: `204 No Content`\n    * Content Type: `application/json`\n\n* With valid BEARER token on failure: `400 Bad Request`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"error\": \"<Error Message>\"\n        }\n        ```\n* With invalid BEARER token: `401 Unauthorized`"
+									},
+									"response": []
+								},
+								{
+									"name": "/platforms/:platform/agents/:vip_identity/configs/:file_name",
+									"request": {
+										"method": "DELETE",
+										"header": [],
+										"url": {
+											"raw": "{{base_url}}/platforms/:platform/agents/:vip_identity/configs/:file_name",
+											"host": [
+												"{{base_url}}"
+											],
+											"path": [
+												"platforms",
+												":platform",
+												"agents",
+												":vip_identity",
+												"configs",
+												":file_name"
+											],
+											"variable": [
+												{
+													"key": "platform",
+													"value": "sekhmet"
+												},
+												{
+													"key": "vip_identity",
+													"value": "agent.bess"
+												},
+												{
+													"key": "file_name",
+													"value": "config"
+												}
+											]
+										},
+										"description": "Remove an existing configuration file for the agent from the config store.\n\n**Request:**\n* Authorization: `BEARER <jwt_token>`\n\n**Response:**\n* With valid BEARER token on success: \n\n* With valid BEARER token on failure: `204 No Content`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"error\": \"<Error Message>\"\n        }\n        ```\n* With invalid BEARER token: `401 Unauthorized`"
+									},
+									"response": []
+								}
+							],
+							"description": "Agent Configs endpoints expose functionality associted with configuration of agents running on a VOLTTRON platform.\n\n* All Configs endpoints require a JWT bearer token obtained through the `POST /authenticate` or `PUT /authenticate` endpoints.\n",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "78ac2bdc-de52-4023-a1cd-b1f25cb8b108",
+										"type": "text/javascript",
+										"exec": [
+											""
+										]
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"id": "5601e881-430e-4da0-90b6-fb6460346340",
+										"type": "text/javascript",
+										"exec": [
+											""
+										]
+									}
+								}
+							],
+							"protocolProfileBehavior": {},
+							"_postman_isSubFolder": true
+						},
+						{
+							"name": "Frontends",
+							"item": [
+								{
+									"name": "/platforms/:platform/agents/:vip_identity/frontends/",
+									"request": {
+										"method": "GET",
+										"header": [],
+										"url": {
+											"raw": "/platforms/:platform/agents/:vip_identity/frontends/",
+											"path": [
+												"platforms",
+												":platform",
+												"agents",
+												":vip_identity",
+												"frontends",
+												""
+											],
+											"variable": [
+												{
+													"key": "platform",
+													"value": ""
+												},
+												{
+													"key": "vip_identity",
+													"value": ""
+												}
+											]
+										},
+										"description": "Get available front-end applications made available by an agent running on the VOLTTRON platform.\n\n**Request:**\n* Authorization: `BEARER <jwt_token>`\n\n**Response:**\n* With valid BEARER token on success: `200 OK` `201 Created` `204 No Content`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"<frontend_name>\": \"/platforms/:platform/agents/:vip_identity/frontends/:frontend_name\",\n            \"<frontend_name>\": \"/platforms/:platform/agents/:vip_identity/frontends/:frontend_name\",\n            ...\n        }\n        ```\n* With valid BEARER token on failure: `400 Bad Request`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"error\": \"<Error Message>\"\n        }\n        ```\n* With invalid BEARER token: `401 Unauthorized`"
+									},
+									"response": []
+								},
+								{
+									"name": "/platforms/:platform/agents/:vip_identity/frontends/:front_end_name",
+									"request": {
+										"method": "GET",
+										"header": [],
+										"url": {
+											"raw": "/platforms/:platform/agents/:vip_identity/frontends/:front_end",
+											"path": [
+												"platforms",
+												":platform",
+												"agents",
+												":vip_identity",
+												"frontends",
+												":front_end"
+											],
+											"variable": [
+												{
+													"key": "platform",
+													"value": ""
+												},
+												{
+													"key": "vip_identity",
+													"value": ""
+												},
+												{
+													"key": "front_end",
+													"value": ""
+												}
+											]
+										},
+										"description": "Load a front-end applications made available by an agent running on the VOLTTRON platform.\n\nThe application must have been created by the developer of the application, but possible use cases include configuration front-ends and control panels.  Front-end applications can define addtional routes as necessary within the namespace /platforms/:platform/agents/:vip_identity/frontends/:frontend_name/....  Applications which require interactivity may also open websockets or link to other resources. All applications should provide a schema to load the user interface for the application, but may also provide other resources, for instance an access_token, in this response as needed in the app_data key. If a websocket is opened, the response should use `201 Created` and the URI should be made available in the `Location` header.\n\n**Request:**\n* Authorization: `BEARER <jwt_token>`\n\n**Response:**\n* With valid BEARER token on success: `200 OK` `201 Created` `204 No Content`\n    * Content Type: `application/json`\n    * Location: `<resource_location>`\n    * Body:\n        ```\n        {\n            \"ui_schema\": {...},\n            \"app_data\": {...}\n        }\n        ```\n* With valid BEARER token on failure: `400 Bad Request`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"error\": \"<Error Message>\"\n        }\n        ```\n* With invalid BEARER token: `401 Unauthorized`"
+									},
+									"response": []
+								}
+							],
+							"description": "Agent Frontend endpoints expose control panels provided by agents running on a VOLTTRON platform.\n\n* All Frontends endpoints require a JWT bearer token obtained through the `POST /authenticate` or `PUT /authenticate` endpoints.\n",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "3cb7bf31-9b5f-46c9-b08c-d7675494e6da",
+										"type": "text/javascript",
+										"exec": [
+											""
+										]
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"id": "60a97225-30ad-4159-b256-b0152947916d",
+										"type": "text/javascript",
+										"exec": [
+											""
+										]
+									}
+								}
+							],
+							"protocolProfileBehavior": {},
+							"_postman_isSubFolder": true
+						},
+						{
+							"name": "PubSub",
+							"item": [
+								{
+									"name": "/platforms/:platform/agents/:vip_identity/pubsub",
+									"request": {
+										"method": "GET",
+										"header": [],
+										"url": "/platforms/:platform/agents/<vip_identity/pubsub",
+										"description": "Retrieve routes for message bus topics monitored by and to which are published by an agent running on a VOLTTRON platform.\n\n**Request:**\n* Authorization: `BEARER <jwt_token>`\n\n**Response:**\n* With valid BEARER token on success: `200 OK`\n    * Body:\n        ```\n        {\n            \"subscribes: [\n                         \"/platform/:platform/pubsub/:topic\",\n                         \"/platform/:platform/pubsub/:topic\",\n                         ...\n                         ],\n            \"publishes: [\n                         \"/platform/:platform/pubsub/:topic\",\n                         \"/platform/:platform/pubsub/:topic\",\n                         ...   \n                        ]\n        }\n        ```\n* With valid BEARER token on failure: `400 Bad Request`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"error\": \"<Error Message>\"\n        }\n        ```\n* With invalid BEARER token: `401 Unauthorized`"
+									},
+									"response": []
+								}
+							],
+							"description": "PubSub retrieve informaton about publish and subscription topics used by an agent running on a VOLTTRON platform.\n\n* All PubSub endpoints require a JWT bearer token obtained through the `POST /authenticate` or `PUT /authenticate` endpoints.\n",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "658ca00f-7ab7-48f6-81e4-a3fc621f497d",
+										"type": "text/javascript",
+										"exec": [
+											""
+										]
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"id": "67a7956d-dcb4-4e18-a44c-631e99db5695",
+										"type": "text/javascript",
+										"exec": [
+											""
+										]
+									}
+								}
+							],
+							"protocolProfileBehavior": {},
+							"_postman_isSubFolder": true
+						},
+						{
+							"name": "Status",
+							"item": [
+								{
+									"name": "/platforms/:platform/agents/:vip_identity/status",
+									"request": {
+										"method": "GET",
+										"header": [],
+										"url": {
+											"raw": "{{base_url}}/platforms/:platform/agents/:vip_identity/status",
+											"host": [
+												"{{base_url}}"
+											],
+											"path": [
+												"platforms",
+												":platform",
+												"agents",
+												":vip_identity",
+												"status"
+											],
+											"variable": [
+												{
+													"key": "platform",
+													"value": "sekhmet"
+												},
+												{
+													"key": "vip_identity",
+													"value": "platform.listener"
+												}
+											]
+										},
+										"description": "Get status for the specified agent.\n\n**Request:**\n* Authorization: `BEARER <jwt_token>`\n\n\n**Response:**\n* With valid BEARER token on success: `200 OK`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"name\": \"<agent_name>\",\n            \"priority\": \"<priority>\",\n            \"tag\": \"<tag>\",\n            \"uuid\": \"<uuid>\",\n            \"running\": \"<running_status>\",\n            \"enabled\": \"<enabled_status>\"\n        }\n        ```\n* With valid BEARER token on failure: `400 Bad Request`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"error\": \"<Error Message>\"\n        }\n        ```\n* With invalid BEARER token: `401 Unauthorized`"
+									},
+									"response": []
+								},
+								{
+									"name": "/platforms/:platform/agents/:vip_identity/status",
+									"request": {
+										"method": "DELETE",
+										"header": [],
+										"url": {
+											"raw": "{{base_url}}/platforms/:platform/agents/:vip_identity/status",
+											"host": [
+												"{{base_url}}"
+											],
+											"path": [
+												"platforms",
+												":platform",
+												"agents",
+												":vip_identity",
+												"status"
+											],
+											"variable": [
+												{
+													"key": "platform",
+													"value": "sekhmet"
+												},
+												{
+													"key": "vip_identity",
+													"value": "platform.listener"
+												}
+											]
+										},
+										"description": "Clear status for the specified agent.\n\n**Request:**\n* Authorization: `BEARER <jwt_token>`\n\n\n**Response:**\n* With valid BEARER token on success: `204 No Content`\n\n* With valid BEARER token on failure: `400 Bad Request`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"error\": \"<Error Message>\"\n        }\n        ```\n* With invalid BEARER token: `401 Unauthorized`"
+									},
+									"response": []
+								}
+							],
+							"description": "Agent Status endpoints expose staus information provided for agents by a VOLTTRON platform.\n\n* All Agent Control endpoints require a JWT bearer token obtained through the `POST /authenticate` or `PUT /authenticate` endpoints.\n",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "2c1fd72a-007b-4a9a-9825-fe5024bd84d3",
+										"type": "text/javascript",
+										"exec": [
+											""
+										]
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"id": "fc5e4040-fed9-402b-ad96-025c049246ec",
+										"type": "text/javascript",
+										"exec": [
+											""
+										]
+									}
+								}
+							],
+							"protocolProfileBehavior": {},
+							"_postman_isSubFolder": true
+						},
+						{
+							"name": "Health",
+							"item": [
+								{
+									"name": "/platforms/:platform/agents/:vip_identity/health",
+									"request": {
+										"method": "GET",
+										"header": [],
+										"url": {
+											"raw": "{{base_url}}/platforms/:platform/agents/:vip_identity",
+											"host": [
+												"{{base_url}}"
+											],
+											"path": [
+												"platforms",
+												":platform",
+												"agents",
+												":vip_identity"
+											],
+											"variable": [
+												{
+													"key": "platform",
+													"value": "sekhmet"
+												},
+												{
+													"key": "vip_identity",
+													"value": "platform.listener"
+												}
+											]
+										},
+										"description": "Get health for the specified agent.\n\n**Request:**\n* Authorization: `BEARER <jwt_token>`\n\n\n**Response:**\n* With valid BEARER token on success: `200 OK`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"status\": {<agent_health>}\n        }\n        ```\n* With valid BEARER token on failure: `400 Bad Request`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"error\": \"<Error Message>\"\n        }\n        ```\n* With invalid BEARER token: `401 Unauthorized`"
+									},
+									"response": []
+								}
+							],
+							"description": "Agent Health endpoints expose health information regarding agents running on a VOLTTRON platform.\n\n* All Agent Control endpoints require a JWT bearer token obtained through the `POST /authenticate` or `PUT /authenticate` endpoints.",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "170674e2-f87d-447d-ae29-c2bb835c45e2",
+										"type": "text/javascript",
+										"exec": [
+											""
+										]
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"id": "2b84e078-2bcc-4483-a332-fd198e7eaeae",
+										"type": "text/javascript",
+										"exec": [
+											""
+										]
+									}
+								}
+							],
+							"protocolProfileBehavior": {},
+							"_postman_isSubFolder": true
+						},
+						{
+							"name": "Running",
+							"item": [
+								{
+									"name": "/platforms/:platform/agents/:vip_identity/running",
+									"request": {
+										"method": "GET",
+										"header": [],
+										"url": {
+											"raw": "{{base_url}}/platforms/:platform/agents/:vip_identity/running",
+											"host": [
+												"{{base_url}}"
+											],
+											"path": [
+												"platforms",
+												":platform",
+												"agents",
+												":vip_identity",
+												"running"
+											],
+											"variable": [
+												{
+													"key": "platform",
+													"value": "sekhmet"
+												},
+												{
+													"key": "vip_identity",
+													"value": "platform.listener"
+												}
+											]
+										},
+										"description": "Retrieve the running status of the specified agent.\n\n**Request:**\n* Authorization: `BEARER <jwt_token>`\n\n\n**Response:**\n* With valid BEARER token on success: `200 OK`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"status\": true|false\n        }\n        ```\n* With valid BEARER token on failure: `400 Bad Request`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"error\": \"<Error Message>\"\n        }\n        ```\n* With invalid BEARER token: `401 Unauthorized`"
+									},
+									"response": []
+								},
+								{
+									"name": "/platforms/:platform/agents/:vip_identity/running",
+									"request": {
+										"method": "PUT",
+										"header": [],
+										"url": {
+											"raw": "{{base_url}}/platforms/:platform/agents/:vip_identity/running",
+											"host": [
+												"{{base_url}}"
+											],
+											"path": [
+												"platforms",
+												":platform",
+												"agents",
+												":vip_identity",
+												"running"
+											],
+											"query": [
+												{
+													"key": "restart",
+													"value": "true",
+													"disabled": true
+												}
+											],
+											"variable": [
+												{
+													"key": "platform",
+													"value": "sekhmet"
+												},
+												{
+													"key": "vip_identity",
+													"value": "platform.listener"
+												}
+											]
+										},
+										"description": "Start the specified agent.\n\nAccepts the query parameter `restart` to restart an agent. If the agent is already running, an error will be returned if the `restart` parameter is not \"true\".\n\n**Request:**\n* Authorization: `BEARER <jwt_token>`\n\n\n**Response:**\n* With valid BEARER token on success:  `204 No Content`\n    * Content Type: `application/json`\n\n* With valid BEARER token on failure: `400 Bad Request`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"error\": \"<Error Message>\"\n        }\n        ```\n* With invalid BEARER token: `401 Unauthorized`"
+									},
+									"response": []
+								},
+								{
+									"name": "/platforms/:platform/agents/:vip_identity/running",
+									"request": {
+										"method": "DELETE",
+										"header": [],
+										"url": {
+											"raw": "{{base_url}}/platforms/:platform/agents/:vip_identity/running",
+											"host": [
+												"{{base_url}}"
+											],
+											"path": [
+												"platforms",
+												":platform",
+												"agents",
+												":vip_identity",
+												"running"
+											],
+											"variable": [
+												{
+													"key": "platform",
+													"value": "sekhmet"
+												},
+												{
+													"key": "vip_identity",
+													"value": "platform.listener"
+												}
+											]
+										},
+										"description": "Stop the specified agent.\n\n**Request:**\n* Authorization: `BEARER <jwt_token>`\n\n\n**Response:**\n* With valid BEARER token on success: `204 No Content`\n    * Content Type: `application/json`\n\n* With valid BEARER token on failure: `400 Bad Request`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"error\": \"<Error Message>\"\n        }\n        ```\n* With invalid BEARER token: `401 Unauthorized`"
+									},
+									"response": []
+								},
+								{
+									"name": "/platforms/:platform/agents/-/running",
+									"request": {
+										"method": "POST",
+										"header": [],
+										"url": {
+											"raw": "{{base_url}}/platforms/:platform/agents/:vip_identity/-/running",
+											"host": [
+												"{{base_url}}"
+											],
+											"path": [
+												"platforms",
+												":platform",
+												"agents",
+												":vip_identity",
+												"-",
+												"running"
+											],
+											"variable": [
+												{
+													"key": "platform",
+													"value": "sekhmet"
+												},
+												{
+													"key": "vip_identity",
+													"value": ""
+												}
+											]
+										},
+										"description": "Start an agent from the remote platform from a path on the filesystem.\n\nThe placeholder `-` is used for the `:vip_identity`. The request body is used to dictate the path on the remote filesystem from which the agent should be run, as well as the vip-identity and tag to use.\n\nThe response code will be `201 Created` and provide a `Location` header with the route to the agent.\n\n**Request:**\n* Authorization: `BEARER <jwt_token>`\n* Content Type: `application/json`\n* Body:\n    ```\n    {\n        \"run_from_path\": \"<agent_path>\",\n        \"conig_path\": \"<config_path>\"\n        \"vip_identity\": \"<tag>\",\n    }\n    ```\n\n**Response:**\n* With valid BEARER token on success:  `201 Created`\n    * Content Type: `application/json`\n    * Location: `/platforms/:platform/agents/:vip_identity`\n\n* With valid BEARER token on failure: `400 Bad Request`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"error\": \"<Error Message>\"\n        }\n        ```\n* With invalid BEARER token: `401 Unauthorized`"
+									},
+									"response": []
+								}
+							],
+							"description": "Agent Running endpoints expose functionality related to starting and stopping agent execution.\n\n* All Agent Control endpoints require a JWT bearer token obtained through the `POST /authenticate` or `PUT /authenticate` endpoints.",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "728b9ca8-1902-4b2e-9925-89bd90a5e314",
+										"type": "text/javascript",
+										"exec": [
+											""
+										]
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"id": "525a1f5a-ae5f-4175-b792-3442ec1addc6",
+										"type": "text/javascript",
+										"exec": [
+											""
+										]
+									}
+								}
+							],
+							"protocolProfileBehavior": {},
+							"_postman_isSubFolder": true
+						},
+						{
+							"name": "Enabled",
+							"item": [
+								{
+									"name": "/platforms/:platform/agents/:vip_identity/enabled",
+									"request": {
+										"method": "GET",
+										"header": [],
+										"url": {
+											"raw": "{{base_url}}/platforms/:platform/agents/:vip_identity/enabled",
+											"host": [
+												"{{base_url}}"
+											],
+											"path": [
+												"platforms",
+												":platform",
+												"agents",
+												":vip_identity",
+												"enabled"
+											],
+											"variable": [
+												{
+													"key": "platform",
+													"value": "sekhmet"
+												},
+												{
+													"key": "vip_identity",
+													"value": "platform.listener"
+												}
+											]
+										},
+										"description": "Retrieve the enabled status of the specified agent. If true, the agent will start with the platform.\n\n**Request:**\n* Authorization: `BEARER <jwt_token>`\n\n\n**Response:**\n* With valid BEARER token on success: `200 OK`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"status\": true|false\n        }\n        ```\n* With valid BEARER token on failure: `400 Bad Request`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"error\": \"<Error Message>\"\n        }\n        ```\n* With invalid BEARER token: `401 Unauthorized`"
+									},
+									"response": []
+								},
+								{
+									"name": "/platforms/:platform/agents/:vip_identity/enabled",
+									"request": {
+										"method": "PUT",
+										"header": [],
+										"url": {
+											"raw": "{{base_url}}/platforms/:platform/agents/:vip_identity/enabled",
+											"host": [
+												"{{base_url}}"
+											],
+											"path": [
+												"platforms",
+												":platform",
+												"agents",
+												":vip_identity",
+												"enabled"
+											],
+											"variable": [
+												{
+													"key": "platform",
+													"value": "sekhmet"
+												},
+												{
+													"key": "vip_identity",
+													"value": "platform.listener"
+												}
+											]
+										},
+										"description": "Enable the specified agent to run on platform start-up.\n\n**Request:**\n* Authorization: `BEARER <jwt_token>`\n\n\n**Response:**\n* With valid BEARER token on success: `204 No Content`\n    * Content Type: `application/json`\n\n* With valid BEARER token on failure: `400 Bad Request`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"error\": \"<Error Message>\"\n        }\n        ```\n* With invalid BEARER token: `401 Unauthorized`"
+									},
+									"response": []
+								},
+								{
+									"name": "/platforms/:platform/agents/:vip_identity/enabled",
+									"request": {
+										"method": "DELETE",
+										"header": [],
+										"url": {
+											"raw": "{{base_url}}/platforms/:platform/agents/:vip_identity/enabled",
+											"host": [
+												"{{base_url}}"
+											],
+											"path": [
+												"platforms",
+												":platform",
+												"agents",
+												":vip_identity",
+												"enabled"
+											],
+											"variable": [
+												{
+													"key": "platform",
+													"value": "sekhmet"
+												},
+												{
+													"key": "vip_identity",
+													"value": "platform.listener"
+												}
+											]
+										},
+										"description": "Disable the specified agent from running on platform start-up.\n\n**Request:**\n* Authorization: `BEARER <jwt_token>`\n\n\n**Response:**\n* With valid BEARER token on success: `204 No Content`\n    * Content Type: `application/json`\n\n* With valid BEARER token on failure: `400 Bad Request`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"error\": \"<Error Message>\"\n        }\n        ```\n* With invalid BEARER token: `401 Unauthorized`"
+									},
+									"response": []
+								}
+							],
+							"description": "Agent Enabled endpoints expose functionality regarding the automatic startup of agents running on a VOLTTRON platform.\n\n* All Agent Control endpoints require a JWT bearer token obtained through the `POST /authenticate` or `PUT /authenticate` endpoints.",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "79ed9cfa-16f1-42c7-8dcd-ac81b18e9088",
+										"type": "text/javascript",
+										"exec": [
+											""
+										]
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"id": "c9b9e487-68b1-42e7-934d-02de4c9e4f72",
+										"type": "text/javascript",
+										"exec": [
+											""
+										]
+									}
+								}
+							],
+							"protocolProfileBehavior": {},
+							"_postman_isSubFolder": true
+						},
+						{
+							"name": "Tag",
+							"item": [
+								{
+									"name": "/platforms/:platform/agents/:vip_identity/tag",
+									"request": {
+										"method": "GET",
+										"header": [],
+										"url": {
+											"raw": "/platforms/:platform/agents/:vip_identity/tag",
+											"path": [
+												"platforms",
+												":platform",
+												"agents",
+												":vip_identity",
+												"tag"
+											],
+											"variable": [
+												{
+													"key": "platform",
+													"value": ""
+												},
+												{
+													"key": "vip_identity",
+													"value": ""
+												}
+											]
+										},
+										"description": "Retrieve the tag of an agent installed on the platform.\n\n**Request:**\n* Authorization: `BEARER <jwt_token>`\n\n**Response:**\n* With valid BEARER token on success: `200 OK`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"tag\": \"<tag>\"\n        }\n        ```\n* With valid BEARER token on failure: `400 Bad Request`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"error\": \"<Error Message>\"\n        }\n        ```\n* With invalid BEARER token: `401 Unauthorized`"
+									},
+									"response": []
+								},
+								{
+									"name": "/platforms/:platform/agents/:vip_identity/tag",
+									"request": {
+										"method": "PUT",
+										"header": [],
+										"url": {
+											"raw": "/platforms/:platform/agents/:vip_identity/tag",
+											"path": [
+												"platforms",
+												":platform",
+												"agents",
+												":vip_identity",
+												"tag"
+											],
+											"variable": [
+												{
+													"key": "platform",
+													"value": ""
+												},
+												{
+													"key": "vip_identity",
+													"value": ""
+												}
+											]
+										},
+										"description": "Set the tag to an agent installed on the platform.\n\n**Request:**\n* Authorization: `BEARER <jwt_token>`\n* Content Type: `application/json`\n* Body:\n\t```\n\t{\n        \"tag\": \"<tag>\"\n\t}\n\t```\n\n**Response:**\n* With valid BEARER token on success: `201 Created'\n    * Content Type: `application/json`\n\n* With valid BEARER token on failure: `400 Bad Request`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"error\": \"<Error Message>\"\n        }\n        ```\n* With invalid BEARER token: `401 Unauthorized`"
+									},
+									"response": []
+								},
+								{
+									"name": "/platforms/:platform/agents/:vip_identity/tag",
+									"request": {
+										"method": "DELETE",
+										"header": [],
+										"url": {
+											"raw": "/platforms/:platform/agents/:vip_identity/tag",
+											"path": [
+												"platforms",
+												":platform",
+												"agents",
+												":vip_identity",
+												"tag"
+											],
+											"variable": [
+												{
+													"key": "platform",
+													"value": ""
+												},
+												{
+													"key": "vip_identity",
+													"value": ""
+												}
+											]
+										},
+										"description": "Remove the tag from an agent installed on a VOLTTRON platfrom.\n\n**Request:**\n* Authorization: `BEARER <jwt_token>`\n\n**Response:**\n* With valid BEARER token on success: `204 No Content`\n\n* With valid BEARER token on failure: `400 Bad Request`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"error\": \"<Error Message>\"\n        }\n        ```\n* With invalid BEARER token: `401 Unauthorized`"
+									},
+									"response": []
+								}
+							],
+							"description": "Agent Tag endpoints expose functionality regarding tags used to reference agents running on a VOLTTRON platform.\n\n* All Agent Control endpoints require a JWT bearer token obtained through the `POST /authenticate` or `PUT /authenticate` endpoints.",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "93930599-3ec4-47d8-8b74-a9e252fa5fea",
+										"type": "text/javascript",
+										"exec": [
+											""
+										]
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"id": "f2c2bc99-5227-4ecc-a1ea-4ee2c31f3072",
+										"type": "text/javascript",
+										"exec": [
+											""
+										]
+									}
+								}
+							],
+							"protocolProfileBehavior": {},
+							"_postman_isSubFolder": true
+						},
+						{
+							"name": "/platforms/:platform/agents",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/platforms/:platform/agents",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"platforms",
+										":platform",
+										"agents"
+									],
+									"variable": [
+										{
+											"key": "platform",
+											"value": "sekhmet"
+										}
+									]
+								},
+								"description": "Return routes for the agents installed on the platform.\n\nAccepts a query parameter `packaged`, which is false by default.  If true, this endpoint will instead return filenames of packaged agents on the platform which can ben installed.\n\n**Request:**\n* Authorization: `BEARER <jwt_token>`\n\n**Response:**\n* With valid BEARER token on success: `200 OK`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"<vip_identity>\": \"/platforms/:platform/agents/:vip_identity\",\n            \"<vip_identity>\": \"/platforms/:platform/agents/:vip_identity\",\n            ...\n        }\n        ```\n* With valid BEARER token on failure: `400 Bad Request`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"error\": \"<Error Message>\"\n        }\n        ```\n* With invalid BEARER token: `401 Unauthorized`"
+							},
+							"response": []
+						},
+						{
+							"name": "/platforms/:platform/agents",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/platforms/:platform/agents",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"platforms",
+										":platform",
+										"agents"
+									],
+									"query": [
+										{
+											"key": "vip_identity",
+											"value": "null",
+											"disabled": true
+										},
+										{
+											"key": "tag",
+											"value": "null",
+											"disabled": true
+										},
+										{
+											"key": "start",
+											"value": "false",
+											"disabled": true
+										},
+										{
+											"key": "enable",
+											"value": "false",
+											"disabled": true
+										}
+									],
+									"variable": [
+										{
+											"key": "platform",
+											"value": "sekhmet"
+										}
+									]
+								},
+								"description": "Install an agent on the VOLTTRON platform.\n\nThis request may use the query parameters `vip_identity`, `tag`, `start` and `enable`.  These will be used when installing the agent.\n\n**Request:**\n* Authorization: `BEARER <jwt_token>`\n* To upload a wheel:\n    * Content Type: `application/x-wheel+zip`\n    * Content Length: `<file_length>`\n    * Body:\n        ```\n        <file_contents>\n        ```\n* To install wheel already on the remote platform:\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"wheel_path\": \"<wheel_path>\"\n        }\n        ```\n\n* To upload zipped source for packaging and installation:\n    * Content Type: `application/zip`\n    * Content Length: `<file_length>`\n    * Body:\n        ```\n        <file_contents>\n        ```\n\n* To package and install from source on the remote system:\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"source_path\": \"<source_path>\",\n            \"config_path\": \"<config_path>\"\n        }\n        ```\n\n**Response:**\n* With valid BEARER token on success: `201 Created`\n    * Content Type: `application/json`\n    * Location: `/platforms/:platform/agents/:vip_identity`\n\n* With valid BEARER token on failure: `400 Bad Request`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"error\": \"<Error Message>\"\n        }\n        ```\n* With invalid BEARER token: `401 Unauthorized`"
+							},
+							"response": []
+						},
+						{
+							"name": "/platforms/:platform/agents/:vip_identity",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/platforms/:platform/agents/:vip_identity",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"platforms",
+										":platform",
+										"agents",
+										":vip_identity"
+									],
+									"variable": [
+										{
+											"key": "platform",
+											"value": "sekhmet"
+										},
+										{
+											"key": "vip_identity",
+											"value": "platform.listener"
+										}
+									]
+								},
+								"description": "Get information about one installed agent. Returns routes to get information on health, status, remote procedure calls, monitored pubsub topics, configurations, front-ends (if available), and to perform control actions such as run status (starting/stoping), enabled status (enable/disable), disabling, and any other relevant actions.\n\n**Request:**\n* Authorization: `BEARER <jwt_token>`\n\n**Response:**\n* With valid BEARER token on success: `200 OK`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"status\": \"/platforms/:platform/agents/:vip_identity/status\",\n            \"health\": \"/platforms/:platform/agents/:vip_identity/health\",\n            \"rpc\": \"/platforms/:platform/agents/:vip_identity/rpc\",\n            \"pubsub\": \"/platforms/:platform/agents/:vip_identity/pubsub\",\n            \"configs\": \"/platforms/:platform/agents/:vip_identity/configs\",\n            \"frontends\": \"/platforms/:platform/agents/:vip_identity/frontends\",\n            \"running\": \"/platforms/:platform/agents/:vip_identity/running\",\n            \"enabled\": \"/platforms/:platform/agents/:vip_identity/enable\"\n        }\n        ```\n* With valid BEARER token on failure: `400 Bad Request`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"error\": \"<Error Message>\"\n        }\n        ```\n* With invalid BEARER token: `401 Unauthorized`"
+							},
+							"response": []
+						},
+						{
+							"name": "/platforms/:platform/agents/:vip_identity",
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/platforms/:platform/agents/:vip_identity",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"platforms",
+										":platform",
+										"agents",
+										":vip_identity"
+									],
+									"variable": [
+										{
+											"key": "platform",
+											"value": "sekhmet"
+										},
+										{
+											"key": "vip_identity",
+											"value": ""
+										}
+									]
+								},
+								"description": "Upgrade an agent on the VOLTTRON platform.\n\n**Request:**\n* Authorization: `BEARER <jwt_token>`\n* To upgrade from an uploaded wheel:\n    * Content Type: `application/x-wheel+zip`\n    * Content Length: `<file_length>`\n    * Body:\n        ```\n        <file_contents>\n        ```\n* To upgrade from a wheel already on the remote platform:\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"wheel_path\": \"<wheel_path>\"\n        }\n        ```\n\n* To upload zipped source for packaging and upgrade:\n    * Content Type: `application/zip`\n    * Content Length: `<file_length>`\n    * Body:\n        ```\n        <file_contents>\n        ```\n\n* To package and upgrade from source on the remote system:\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"source_path\": \"<source_path>\",\n            \"config_path\": \"<config_path>\"\n        }\n        ```\n\n**Response:**\n* With valid BEARER token on success: `204 No Content`\n\n* With valid BEARER token on failure: `400 Bad Request`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"error\": \"<Error Message>\"\n        }\n        ```\n* With invalid BEARER token: `401 Unauthorized`\n**Response:**\n* With valid BEARER token on success: `200 OK`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"<vip_identity>\": \"<uuid>\"\n        }\n        ```\n* With valid BEARER token on failure: `400 Bad Request`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"error\": \"<Error Message>\"\n        }\n        ```\n* With invalid BEARER token: `401 Unauthorized`"
+							},
+							"response": []
+						},
+						{
+							"name": "/platforms/:platform/agents/:vip_identity",
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/platforms/:platform/agents/:vip_identity",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"platforms",
+										":platform",
+										"agents",
+										":vip_identity"
+									],
+									"variable": [
+										{
+											"key": "platform",
+											"value": "sekhmet"
+										},
+										{
+											"key": "vip_identity",
+											"value": ""
+										}
+									]
+								},
+								"description": "Uninstall an agent from the platform.\n\n**Request:**\n* Authorization: `BEARER <jwt_token>`\n\n**Response:**\n* With valid BEARER token on success: `204 No Content`\n\n* With valid BEARER token on failure: `400 Bad Request`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"error\": \"<Error Message>\"\n        }\n        ```\n* With invalid BEARER token: `401 Unauthorized`"
+							},
+							"response": []
+						}
+					],
+					"description": "Agents endpoints expose functionality associted with applications running on a VOLTTRON platform.\n\n* All Agent endpoints require a JWT bearer token obtained through the `POST /authenticate` or `PUT /authenticate` endpoints.\n",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "a11805ad-b4bc-459a-aad3-e2bb41170782",
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "ead7845e-1ea8-4993-bc58-ae5dff3f3c97",
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
+						}
+					],
+					"protocolProfileBehavior": {},
+					"_postman_isSubFolder": true
+				},
+				{
+					"name": "Configs",
+					"item": [
+						{
+							"name": "/platforms/:platform/configs",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/platforms/:platform/configs",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"platforms",
+										":platform",
+										"configs"
+									],
+									"variable": [
+										{
+											"key": "platform",
+											"value": "sekhmet"
+										}
+									]
+								},
+								"description": "Get routes to available configuration files for the specified platform (not an indiviual agent, but the platform itself).\n\n**Request:**\n* Authorization: BEARER <jwt_token>\n\n**Response:**\n* With valid BEARER token on success: `200 OK`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"<config_name>\": \"/platforms/:platform/configs/:config_name\",\n            \"<config_name>\": \"/platforms/:platform/configs/:config_name\",\n             ...\n        }\n        ```\n* With valid BEARER token on failure: `400 Bad Request`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"error\": \"<Error Message>\"\n        }\n        ```\n* With invalid BEARER token: `401 Unauthorized`"
+							},
+							"response": []
+						},
+						{
+							"name": "/platforms/:platform/configs",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"setting1\": 30,\n    \"setting2\": 0\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/platforms/:platform/configs",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"platforms",
+										":platform",
+										"configs"
+									],
+									"query": [
+										{
+											"key": "file-name",
+											"value": "null",
+											"disabled": true
+										}
+									],
+									"variable": [
+										{
+											"key": "platform",
+											"value": "sekhmet"
+										}
+									]
+								},
+								"description": "Save a new platform configuration file.\n\nThe file name should be passed in the query parameter `file-name`.\n\nThe platform configuration files are currently either JSON, INI files. The MIME type of the response will be either `applciation/json` or `text/plain` in the case of INI files. This endpoint will return an error if the file already exists. To update an existing file, use the `PUT /platforms/:platform/configs/:file_name` endpoint.\n\n> &#x26a0;&#xfe0f; **Editing platform configuration files can affect the ability of the platform to restart.**  It is not currently possible to repair an unstartable platfrom from the API. Fixing mistakes will require direct access to the device or SSH.\n\n**Request:**\n\n* Authorization: `BEARER <jwt_token>`\n* Content Type: `application/json`\n* Body (shown for JSON):\n    ```\n    {\n        \"<setting_name>\": <value>,\n        \"<setting_name>\": <value>,\n        ...\n    }\n    ```\n\n**Response:**\n* With valid BEARER token on success: `201 Created`\n    * Location: `/platforms/:platform/configs/:file_name`\n    * Content Type: `application/json`\n\n* With valid BEARER token on failure: `400 Bad Request`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"error\": \"<Error Message>\"\n        }\n        ```\n* With invalid BEARER token: `401 Unauthorized`\n\n**Request body:**\n```\n{\"<setting_name>\": <value>, ...}\n```\n\n**Response body:**\n```\n {\"return\": <value>}\n```"
+							},
+							"response": []
+						},
+						{
+							"name": "/platforms/:platform/configs/:file_name",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/platforms/:platform/configs/:file_name",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"platforms",
+										":platform",
+										"configs",
+										":file_name"
+									],
+									"variable": [
+										{
+											"key": "platform",
+											"value": "sekhmet"
+										},
+										{
+											"key": "file_name",
+											"value": "config"
+										}
+									]
+								},
+								"description": "Get a configuration file for the platform (not for an individual agent).\n\nThe platform configuration files are currently either JSON, INI files. The MIME type of the response will be either `applciation/json` or `text/plain` in the case of INI files.\n\n> &#x26a0;&#xfe0f; **Editing platform configuration files can affect the ability of the platform to restart.**  It is not currently possible to repair an unstartable platfrom from the API. Fixing mistakes will require direct access to the device or SSH.\n\n**Request:**\n* Authorization: `BEARER <jwt_token>`\n\n**Response:**\n* With valid BEARER token on success: `200 OK`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n          \"<setting_name>\": <value>,\n          \"<setting_name>\": <value>,\n          ...\n        }\n        ```\n* With valid BEARER token on failure: `400 Bad Request`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"error\": \"<Error Message>\"\n        }\n        ```\n* With invalid BEARER token: `401 Unauthorized`"
+							},
+							"response": []
+						},
+						{
+							"name": "/platforms/:platform/configs/:file_name",
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"setting1\": 30,\n    \"setting2\": 0\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/platforms/:platform/configs/:file_name",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"platforms",
+										":platform",
+										"configs",
+										":file_name"
+									],
+									"variable": [
+										{
+											"key": "platform",
+											"value": "sekhmet"
+										},
+										{
+											"key": "file_name",
+											"value": "config"
+										}
+									]
+								},
+								"description": "Replace an existing platform configuration file.\n\nThe platform configuration files are currently either JSON, INI files. The MIME type of the response will be either `applciation/json` or `text/plain` in the case of INI files. This endpoint will return an error if the file does not already exist. To create a new file, use the `POST /platforms/:platform/configs` endpoint.\n\n> &#x26a0;&#xfe0f; **Editing platform configuration files can affect the ability of the platform to restart.**  It is not currently possible to repair an unstartable platfrom from the API. Fixing mistakes will require direct access to the device or SSH.\n\n**Request:**\n* Authorization: `BEARER <jwt_token>`\n* Content Type: `application/json`\n* Body:\n    ```\n    {\n        \"<setting_name>\": <value>,\n        \"<setting_name>\": <value>,\n        ...\n    }\n    ```\n\n**Response:**\n* With valid BEARER token on success: `204 No Content`\n    * Content Type: `application/json`\n\n* With valid BEARER token on failure: `400 Bad Request`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"error\": \"<Error Message>\"\n        }\n        ```\n* With invalid BEARER token: `401 Unauthorized`\n\n**Request body:**\n```\n{\"<setting_name>\": <value>, ...}\n```\n\n**Response body:**\n```\n {\"return\": <value>}\n```"
+							},
+							"response": []
+						},
+						{
+							"name": "/platforms/:platform/configs/:file_name",
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/platforms/:platform/configs/:file_name",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"platforms",
+										":platform",
+										"configs",
+										":file_name"
+									],
+									"variable": [
+										{
+											"key": "platform",
+											"value": "sekhmet"
+										},
+										{
+											"key": "file_name",
+											"value": "config"
+										}
+									]
+								},
+								"description": "Delete an existing configuration file for the platform (not for an individual agent).\n\n\n> &#x26a0;&#xfe0f; **Editing platform configuration files can affect the ability of the platform to restart.**  It is not currently possible to repair an unstartable platfrom from the API. Fixing mistakes will require direct access to the device or SSH.\n\n**Request:**\n* Authorization: `BEARER <jwt_token>`\n\n**Response:**\n* With valid BEARER token on success: `204 No Content`\n\n* With valid BEARER token on failure: `400 Bad Request`\n\n* With invalid BEARER token: `401 Unauthorized`"
+							},
+							"response": []
+						}
+					],
+					"description": "Platform Configs endpoints expose functionality associted with configuration files for a VOLTTRON platform.\n\n* All Platform Configs endpoints require a JWT bearer token obtained through the `POST /authenticate` or `PUT /authenticate` endpoints.",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "5153dadb-83fd-4330-9d50-c07612c88446",
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "b38b15fc-b0a1-4e16-bc18-9cd51274cadb",
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
+						}
+					],
+					"protocolProfileBehavior": {},
+					"_postman_isSubFolder": true
+				},
+				{
+					"name": "Status",
+					"item": [
+						{
+							"name": "/platforms/:platform/status",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/platforms/:platform/status",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"platforms",
+										":platform",
+										"status"
+									],
+									"variable": [
+										{
+											"key": "platform",
+											"value": "sekhmet"
+										}
+									]
+								},
+								"description": "Get status for the agents on the platform.\n\n**Request:**\n* Authorization: `BEARER <jwt_token>`\n\n\n**Response:**\n* With valid BEARER token on success: `200 OK`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        [\n            \"<vip_identity>\": { \n                                \"name\": \"<agent_name>\",\n                                \"priority\": \"<priority>\",\n                                \"tag\": \"<tag>\",\n                                \"uuid\": \"<uuid>\",\n                                \"running\": \"<running_status>\",\n                                \"enabled\": \"<enabled_status>\"\n                               },\n            \"<vip_identity>\": {...},\n            ...\n        ]\n        ```\n* With valid BEARER token on failure: `400 Bad Request`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"error\": \"<Error Message>\"\n        }\n        ```\n* With invalid BEARER token: `401 Unauthorized`"
+							},
+							"response": []
+						}
+					],
+					"description": "Platform Status endpoints expose functionality regarding the status of a VOLTTRON platform instance.\n\n* All Agent Control endpoints require a JWT bearer token obtained through the `POST /authenticate` or `PUT /authenticate` endpoints.",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "acad3da5-8d97-4ccf-a12e-8b3a1249c9c2",
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "ac09bf17-1e52-4f2a-b750-6fdccf12b2bd",
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
+						}
+					],
+					"protocolProfileBehavior": {},
+					"_postman_isSubFolder": true
+				},
+				{
+					"name": "Health",
+					"item": [
+						{
+							"name": "/platforms/:platform/health",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/platforms/:platform/agents/:vip_identity",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"platforms",
+										":platform",
+										"agents",
+										":vip_identity"
+									],
+									"variable": [
+										{
+											"key": "platform",
+											"value": "sekhmet"
+										},
+										{
+											"key": "vip_identity",
+											"value": "platform.listener"
+										}
+									]
+								},
+								"description": "Get health for the specified platform.\n\n**Request:**\n* Authorization: `BEARER <jwt_token>`\n\n\n**Response:**\n* With valid BEARER token on success: `200 OK`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"status\": {<platform_health>}\n        }\n        ```\n* With valid BEARER token on failure: `400 Bad Request`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"error\": \"<Error Message>\"\n        }\n        ```\n* With invalid BEARER token: `401 Unauthorized`"
+							},
+							"response": []
+						}
+					],
+					"description": "Platform Health endpoints expose functionality regarding the health of a VOLTTRON platform instance.\n\n* All Agent Control endpoints require a JWT bearer token obtained through the `POST /authenticate` or `PUT /authenticate` endpoints.",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "3c7d3ced-abf2-48d6-b0e8-da4db493c90c",
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "6ac17efb-dc24-4a04-9a06-95666388ed43",
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
+						}
+					],
+					"protocolProfileBehavior": {},
+					"_postman_isSubFolder": true
+				},
+				{
+					"name": "Devices",
+					"item": [
+						{
+							"name": "/platforms/:platform/devices",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/platforms/:platform/devices",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"platforms",
+										":platform",
+										"devices"
+									],
+									"variable": [
+										{
+											"key": "platform",
+											"value": "sekhmet"
+										}
+									]
+								},
+								"description": "Get routes to all devices for a platform.\n\n> **Note:** Platform Device endpoints accept query parameters to refine their output, as described in the introduction to the Devices section.\n\n**Request:**\n* Authorization: `BEARER <jwt_token>`\n\n**Response:**\n* With valid BEARER token on success: `200 OK`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"<topic>\": \"/platforms/:platform/devices/:topic\",\n            \"<topic>\": \"/platforms/:platform/devices/:topic\",\n            ...\n        }\n        ```\n* With valid BEARER token on failure: `400 Bad Request`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"error\": \"<Error Message>\"\n        }\n        ```\n* With invalid BEARER token: `401 Unauthorized`"
+							},
+							"response": []
+						},
+						{
+							"name": "/platforms/:platform/devices/:topic/",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/platforms/:platform/devices/:topic",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"platforms",
+										":platform",
+										"devices",
+										":topic"
+									],
+									"variable": [
+										{
+											"key": "platform",
+											"value": ""
+										},
+										{
+											"key": "topic",
+											"value": ""
+										}
+									]
+								},
+								"description": "Returns a collection of points and values for a device topic.\n\n> **Note:** Platform Device endpoints accept query parameters to refine their output, as described in the introduction to the Devices section.\n\n> **Note:** See the introduction to the Platform Devices section for information on the use of topics.\n\n**Request:**\n* Authorization: `BEARER <jwt_token>`\n\n\n**Response:**\n* With valid BEARER token on success: `200 OK`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"<topic>\": \"/platform/:platform/devices/:topic\",\n            \"<topic>\": [\n                        \"/platform/:platform/devices/:topic\",\n                        \"/platform/:platform/devices/:topic\",\n                       ]\n            ...\n        }\n        ```\n* With valid BEARER token on failure: `400 Bad Request`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"error\": \"<Error Message>\"\n        }\n        ```\n* With invalid BEARER token: `401 Unauthorized`"
+							},
+							"response": []
+						},
+						{
+							"name": "/platforms/:platform/devices/:topic/",
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"value\": 5\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/platforms/:platform/devices/:topic",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"platforms",
+										":platform",
+										"devices",
+										":topic"
+									],
+									"variable": [
+										{
+											"key": "platform",
+											"value": ""
+										},
+										{
+											"key": "topic",
+											"value": ""
+										}
+									]
+								},
+								"description": "Sets the value of the specified point and returns its new value and meta-data.\n\n> **Note:** Platform Device endpoints accept query parameters to refine their output, as described in the introduction to the Devices section.\n\n> **Note:** See the introduction to the Platform Devices section for information on the use of topics.\n\nIf an attempt is made to set a point which is not writable, the response will be `405 Method Not Allowed`.\n\nIf the request uses partial topics and/or query parameters to select more than one point to set, the query parameter `write-all` must be set. If `write-all` is not set, the request will fail with `405 Method Not Allowed`. The request will also fail unless all writes are successful, and any points which would otherwise be set will be reverted to their previous value.\n\n**Request:**\n* Authorization: `BEARER <jwt_token>`\n* Content Type: `application/json`\n* Body:\n\t```\n\t{\n\t    \"value\": <value>\n\t}\n\t```\n\n**Response:**\n* With valid BEARER token on success: `200 OK`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"value\": <new_value>,\n            \"meta\": <meta_data>       \n        }\n        ```\n* With valid BEARER token if any point is not writable: `405 Method Not Allowed`:\n    * Conent Type: `application/json`\n    * Body:\n        ```\n        {\n            \"error\": \"<Error Message indicating unwritable points>\"\n        }\n        ```\n* With valid BEARER token on any other failure: `400 Bad Request`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"error\": \"<Error Message>\"\n        }\n        ```\n* With invalid BEARER token: `401 Unauthorized`"
+							},
+							"response": []
+						},
+						{
+							"name": "/platforms/:platform/devices/:topic/",
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"value\": 5\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/platforms/:platform/devices/:topic",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"platforms",
+										":platform",
+										"devices",
+										":topic"
+									],
+									"variable": [
+										{
+											"key": "platform",
+											"value": ""
+										},
+										{
+											"key": "topic",
+											"value": ""
+										}
+									]
+								},
+								"description": "resets the value of the specified point and returns its new value and meta-data.\n\n> **Note:** Platform Device endpoints accept query parameters to refine their output, as described in the introduction to the Devices section.\n\n> **Note:** See the introduction to the Platform Devices section for information on the use of topics.\n\nIf an attempt is made to set a point which is not writable, the response will be `405 Method Not Allowed`.\n\nIf the request uses partial topics and/or query parameters to select more than one point to set, the query parameter `write-all` must be set. If `write-all` is not set, the request will fail with `405 Method Not Allowed`. The request will also fail unless all writes are successful, and any points which would otherwise be set will be reverted to their previous value.\n\n**Request:**\n* Authorization: `BEARER <jwt_token>`\n\n**Response:**\n* With valid BEARER token on success: `200 OK`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"value\": <new_value>,\n            \"meta\": <meta_data>       \n        }\n        ```\n* With valid BEARER token if any point is not writable: `405 Method Not Allowed`:\n    * Conent Type: `application/json`\n    * Body:\n        ```\n        {\n            \"error\": \"<Error Message indicating unwritable points>\"\n        }\n        ```\n* With valid BEARER token on any other failure: `400 Bad Request`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"error\": \"<Error Message>\"\n        }\n        ```\n* With invalid BEARER token: `401 Unauthorized`"
+							},
+							"response": []
+						}
+					],
+					"description": "Platform Devices endpoints expose functionality associted with devices managed by a VOLTTRON platform.\n\n* All Platform Devices endpoints require a JWT bearer token obtained through the `POST /authenticate` or `PUT /authenticate` endpoints.\n\n**Note on the use of topics in Device and Platform Device Requests**\n\nThere is no special meaning to most segements of a topic in the VOLTTRON platform.  Topics typically, however do follow some convention, for instance `:campus/:building/:device/:point`. In the context of devices, however, the final segement in a full topic denotes a point which can be read or actuated. Partial topics (not including the last segment) denote some collection of these point resources. A topic, for instance which is complete up to the `:device` level in the campus example would yield a single device containing one or more points. A topic complete to the `:building` level would include a set of devices, each containing some set of points. The response to any request containing a full topic may differ, therefore, from a partial topic because it contains a complete path to a resource which can be individually queried or acted upon. The exact difference may vary by endpoint, and as dictated by query parameters as described below.\n\nThe `-` character may be used alone to represent any value for a segment: `/:campus/-/:device` will match all devices with the name :device on the :campus in any building.  It is not possible to use `-` as a wildcard within a segment containing other characters: `/campus/foo-bar/:device` will only match a building called \"foo-bar\", not one called \"foobazbar\".\n\n> &#x26a0;&#xfe0f; It is possible that more than one device on several connected systems may share the same topic. In this case, as with the `GET /devices` endpoint, the duplicates will be contained within a list. Users should always check the type of the value to determine if a given value in the dictionary is a string, list, or dict.\n\n**Device and Platform Devices endpoints can accept the following query parameters to refine their output:**\n\n* tag (default=null): Filter the result by the provided tag.\n* regex (default=null): Filter the result by the provided regular expression (follows python re syntax).\n\nGET requests additionally accept:\n\n* include-points (default=false): \n    * If true, the response will return entries for every point. These will be a dictionary of dictionaries with route, writability, and value unless the result is further filtered by the corresponding parameters. If only one of `route`, `writable`, or `value` are additionally provided, the result will be a dictionary of the corresponding item. If none of these are set to true (the default), all will be returned:\n        ```\n        {\n            \"route: <route_to_point>,\n            \"writable\": true|false,\n            \"value\": <value>\n        }\n        ```\n    * If false, the response will consist of a dictionary of routes to devices (the most complete topic without points). `route`, `writable`, and `value` will be ignored.\n* route (default=false): IF true, the result will include the route to the points.\n* writable (default=false): IF true, the result will include the writability of the points.\n* value (default=false): IF true, the result will include the value of the points.\n\n",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "5c532e8a-7475-4aa5-ac7e-a0e4abfde50b",
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "52d09502-3617-40b9-9ba6-741aa7e6b261",
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
+						}
+					],
+					"protocolProfileBehavior": {},
+					"_postman_isSubFolder": true
+				},
+				{
+					"name": "Statistics",
+					"item": [
+						{
+							"name": "/platforms/:platform/statistics",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "/platforms/:platform/statistics",
+									"path": [
+										"platforms",
+										":platform",
+										"statistics"
+									],
+									"variable": [
+										{
+											"key": "platform",
+											"value": ""
+										}
+									]
+								},
+								"description": "Get enabled status of message bus statistics on the platform.\n\n**Request:**\n* Authorization: `BEARER <jwt_token>`\n\n**Response:**\n* With valid BEARER token on success: `200 OK`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"status\": \"<enabled|disabled>\"\n        }\n        ```\n* With valid BEARER token on failure: `400 Bad Request`\n    * Content Type: `application\\json`\n    * Body:\n        ```\n        {\n            \"error\": \"<Error Message>\"\n        }\n        ```\n* With invalid BEARER token: `401 Unauthorized`"
+							},
+							"response": []
+						},
+						{
+							"name": "/platforms/:platform/statistics",
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"url": {
+									"raw": "/platforms/:platform/statistics",
+									"path": [
+										"platforms",
+										":platform",
+										"statistics"
+									],
+									"variable": [
+										{
+											"key": "platform",
+											"value": ""
+										}
+									]
+								},
+								"description": "Enable message bus statistics on the platform.\n\n**Request:**\n* Authorization: `BEARER <jwt_token>`\n\n**Response:**\n* With valid BEARER token on success: `204 No Content`\n\n* With valid BEARER token on failure: `400 Bad Request`\n    * Content Type: `application\\json`\n    * Body:\n        ```\n        {\n            \"error\": \"<Error Message>\"\n        }\n        ```\n* With invalid BEARER token: `401 Unauthorized`"
+							},
+							"response": []
+						},
+						{
+							"name": "/platforms/:platform/statistics",
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "/platforms/:platform/statistics",
+									"path": [
+										"platforms",
+										":platform",
+										"statistics"
+									],
+									"variable": [
+										{
+											"key": "platform",
+											"value": ""
+										}
+									]
+								},
+								"description": "Disable message bus statistics on the platform.\n\n**Request:**\n* Authorization: `BEARER <jwt_token>`\n\n**Response:**\n* With valid BEARER token on success: `204 No Content`\n\n* With valid BEARER token on failure: `400 Bad Request`\n    * Content Type: `application\\json`\n    * Body:\n        ```\n        {\n            \"error\": \"<Error Message>\"\n        }\n        ```\n* With invalid BEARER token: `401 Unauthorized`"
+							},
+							"response": []
+						}
+					],
+					"description": "Platform Statistics endpoints expose functionality regarding the monitoring of the message bus of a VOLTTRON platform.\n\n* All Agent Control endpoints require a JWT bearer token obtained through the `POST /authenticate` or `PUT /authenticate` endpoints.",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "a16e9c5b-66e2-491c-9bd1-0d41bf7b188b",
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "844adec0-29b1-4d53-80a9-b2e43f86df16",
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
+						}
+					],
+					"protocolProfileBehavior": {},
+					"_postman_isSubFolder": true
+				},
+				{
+					"name": "Auths",
+					"item": [
+						{
+							"name": "/platforms/:platform/auths",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "/platforms/:platform/auths",
+									"path": [
+										"platforms",
+										":platform",
+										"auths"
+									],
+									"variable": [
+										{
+											"key": "platform",
+											"value": ""
+										}
+									]
+								},
+								"description": "Get routes for authentication/authorization records of all agents running in the VOLTTRON platform.\n\nRequest accepts the query parameter `records` which will cause the response to include auth records in addtion to the routes.\n\n> **Note:** `<auth_user_id>` can take any value specified in a `user_id` field in an auth record on the system. For local agents, this should be the actual VIP identity. The string, however is arbitrary and may have other values for remote agents to distinguish them from local versions of the same agent.\n\n**Request:**\n* Authorization: `BEARER <jwt_token>`\n\n**Response:**\n* With valid BEARER token on success: `200 OK`\n    * Content Type: `application/json`\n    * Body (with record=false):\n        ```\n        {\n            \"<auth_user_id>\": \"/platforms/:platform/auths/:auth_user_id\",\n            \"<auth_user_id>\": \"/platforms/:platform/auths/:auth_user_id\",\n            ...\n        }\n        ```\n    * Body (with records=true):\n        ```\n        {\n            \"<auth_user_id>\": {\n                \"route\": \"/platforms/:platform/auths/:auth_user_id\",\n                \"record\": {\n                    \"domain\": \"<domain>\",\n                    \"address\": \"<address>\",\n                    \"capabilities\": [\"<capability>\", ...],\n                   \"roles\": [\"<role>\", ...],\n                    \"groups\": [\"<group>\", ...],\n                    \"mechanism\": \"<mechanism>\",\n                    \"credentials\": \"<public_key>\",\n                    \"comments\": \"<comments>\",\n                    \"enabled\": true|false\n                },\n                ...\n            }\n        }\n        ```\n* With valid BEARER token on failure: `400 Bad Request`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"error\": \"<Error Message>\"\n        }\n        ```\n* With invalid BEARER token: `401 Unauthorized`"
+							},
+							"response": []
+						},
+						{
+							"name": "/platforms/:platform/auths",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "/platforms/:platform/auths",
+									"path": [
+										"platforms",
+										":platform",
+										"auths"
+									],
+									"variable": [
+										{
+											"key": "platform",
+											"value": ""
+										}
+									]
+								},
+								"description": "Create authentication/authorization record for an agent running in the VOLTTRON platform.\n\nThe `<user_id>` will become the `:auth_user_id` in the route returned in the `Location` header of the response.\n\n> **Note:** A `<user_id>` can take any value but should be unique on the platform. For local agents, this should be the actual VIP identity. The string, however is arbitrary and may have other values for remote agents to distinguish them from local versions of the same agent.  \n\n\n**Request:**\n* Authorization: `BEARER <jwt_token>`\n* Content Type: `application/json`\n* Body:\n\t```\n\t{\n        \"domain\": \"<domain>\",\n        \"address\": \"<address>\",\n        \"user_id\": \"<user_id>\",\n        \"capabilities\": [\"<capability>\", ...],\n        \"roles\": [\"<role>\", ...],\n        \"groups\": [\"<group>\", ...],\n        \"mechanism\": \"<mechanism>\",\n        \"credentials\": \"<public_key>\",\n        \"comments\": \"<comments>\",\n        \"enabled\": true|false\n\t}\n\t```\n\n**Response:**\n* With valid BEARER token on success: `201 Created`\n    * Location: `/platforms/:platform/auths/:auth_user_id`\n\n* With valid BEARER token on failure: `400 Bad Request`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"error\": \"<Error Message>\"\n        }\n        ```\n* With invalid BEARER token: `401 Unauthorized`"
+							},
+							"response": []
+						},
+						{
+							"name": "/platforms/:platform/auths/:auth_user_id",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "/platforms/:platform/auths/:auth_user_id",
+									"path": [
+										"platforms",
+										":platform",
+										"auths",
+										":auth_user_id"
+									],
+									"variable": [
+										{
+											"key": "platform",
+											"value": ""
+										},
+										{
+											"key": "auth_user_id",
+											"value": ""
+										}
+									]
+								},
+								"description": "Get authentication/authorization record for the specified agent running in the VOLTTRON platform.\n\n> **Note:** `:auth_user_id` can take any value specified in a `user_id` field in an auth record on the system. For local agents, this should be the actual VIP identity. The string, however is arbitrary and may have other values for remote agents to distinguish them from local versions of the same agent.\n\n**Request:**\n* Authorization: `BEARER <jwt_token>`\n\n**Response:**\n* With valid BEARER token on success: `200 OK`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n                \"domain\": \"<domain>\",\n                \"address\": \"<address>\",\n                \"user_id\": \"<user_id>\",\n                \"capabilities\": [\"<capability>\", ...],\n                \"roles\": [\"<role>\", ...],\n                \"groups\": [\"<group>\", ...],\n                \"mechanism\": \"<mechanism>\",\n                \"credentials\": \"<public_key>\",\n                \"comments\": \"<comments>\",\n                \"enabled\": true|false\n        }\n        ```\n* With valid BEARER token on failure: `400 Bad Request`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"error\": \"<Error Message>\"\n        }\n        ```\n* With invalid BEARER token: `401 Unauthorized`"
+							},
+							"response": []
+						},
+						{
+							"name": "/platforms/:platform/auths/:auth_user_id",
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"url": {
+									"raw": "/platforms/:platform/auths/:auth_user_id",
+									"path": [
+										"platforms",
+										":platform",
+										"auths",
+										":auth_user_id"
+									],
+									"variable": [
+										{
+											"key": "platform",
+											"value": ""
+										},
+										{
+											"key": "auth_user_id",
+											"value": ""
+										}
+									]
+								},
+								"description": "Update existing authentication/authorization record for an agent running in the VOLTTRON platform.\n\n> **Note:** `:auth_user_id` can take any value specified in a `user_id` field in an auth record on the system. For local agents, this should be the actual VIP identity. The string, however is arbitrary and may have other values for remote agents to distinguish them from local versions of the same agent.\n\n**Request:**\n* Authorization: `BEARER <jwt_token>`\n* Content Type: `application/json`\n* Body:\n\t```\n\t{\n        \"domain\": \"<domain>\",\n        \"address\": \"<address>\",\n        \"user_id\": \"<user_id>\",\n        \"capabilities\": [\"<capability>\", ...],\n        \"roles\": [\"<role>\", ...],\n        \"groups\": [\"<group>\", ...],\n        \"mechanism\": \"<mechanism>\",\n        \"credentials\": \"<public_key>\",\n        \"comments\": \"<comments>\",\n        \"enabled\": true|false\n\t}\n\t```\n\n**Response:**\n* With valid BEARER token on success: `204 No Content`\n\n* With valid BEARER token on failure: `400 Bad Request`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"error\": \"<Error Message>\"\n        }\n        ```\n* With invalid BEARER token: `401 Unauthorized`"
+							},
+							"response": []
+						},
+						{
+							"name": "/platforms/:platform/auths/:auth_user_id",
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "/platforms/:platform/auths/:auth_user_id",
+									"path": [
+										"platforms",
+										":platform",
+										"auths",
+										":auth_user_id"
+									],
+									"variable": [
+										{
+											"key": "platform",
+											"value": ""
+										},
+										{
+											"key": "auth_user_id",
+											"value": ""
+										}
+									]
+								},
+								"description": "Remove an authentication/authorization record for an agent running in the VOLTTRON platform.\n\n> **Note:** `:auth_user_id` can take any value specified in a `user_id` field in an auth record on the system. For local agents, this should be the actual VIP identity. The string, however is arbitrary and may have other values for remote agents to distinguish them from local versions of the same agent.\n\n**Request:**\n* Authorization: `BEARER <jwt_token>`\n\n**Response:**\n* With valid BEARER token on success: `204 No Content`\n\n* With valid BEARER token on failure: `400 Bad Request`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"error\": \"<Error Message>\"\n        }\n        ```\n* With invalid BEARER token: `401 Unauthorized`"
+							},
+							"response": []
+						},
+						{
+							"name": "platforms/:platform/auths/:auth_user_id/publickeys",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": "",
+								"description": "Retrieve public keys for an agent or the platform.\n\nPassing \"-\" as the path variable `auth_user_id` will return all public keys, including the server key for the platform.  Passing \"platform\" for `:auth_user_id` will return only the server key.\n\n**Request:**\n* Authorization: `BEARER <jwt_token>`\n\n**Response:**\n* With valid BEARER token on success: `200 OK`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"platform\": \"<server_key>\",\n            \"<vip_identity>\": \"<public_key>\",\n            \"<vip_identity>\": \"<public_key>\",\n            ...\n        }\n        ```\n* With valid BEARER token on failure: `400 Bad Request`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"error\": \"<Error Message>\"\n        }\n        ```\n* With invalid BEARER token: `401 Unauthorized`"
+							},
+							"response": []
+						}
+					],
+					"description": "Platform Auths endpoints expose functionality related to authentication/authorization records for agents running within a VOLTTRON platform.\n\n* All Agent Control endpoints require a JWT bearer token obtained through the `POST /authenticate` or `PUT /authenticate` endpoints.",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "48285a8a-7032-4c97-8727-b367dea4a2d8",
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "c9b703e5-780b-4808-a41e-02511904a059",
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
+						}
+					],
+					"protocolProfileBehavior": {},
+					"_postman_isSubFolder": true
+				},
+				{
+					"name": "KnownHosts",
+					"item": [
+						{
+							"name": "/platforms/:platform/known-hosts",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "/platforms/:platform/known-hosts",
+									"path": [
+										"platforms",
+										":platform",
+										"known-hosts"
+									],
+									"query": [
+										{
+											"key": "records",
+											"value": "true",
+											"disabled": true
+										}
+									],
+									"variable": [
+										{
+											"key": "platform",
+											"value": ""
+										}
+									]
+								},
+								"description": "Retrieve routes to the known-host records of platforms known to the specified platform.\n\nIn the case where more than one host has the same address on different ports, the value will be a list of routes to the corresponding hosts.\n\nTo retrieve the records for all known-hosts on the platform, set the `records` query parameter to true.\n\n> &#x26a0;&#xfe0f; The colon is a reserved character in a URI. The path variable for routes to known hosts is delimited by a dash: e.g.: `<address>-<port>`.\n\n**Request:**\n* Authorization: `BEARER <jwt_token>`\n\n**Response:**\n* With valid BEARER token on success: `200 OK`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"<host_address>\": \"/platforms/:platform/known-hosts/:host_address-:host_port\",\n            \"<host_address>\": [\n                \"/platforms/:platform/known-hosts/:host_address-:host_port1\",\n                \"/platforms/:platform/known-hosts/:host_address-:host_port2\",\n                ],\n            ...\n        }\n        ```\n    * Body (with records=true):\n        ``` \n        {\n            <host_address>\": {\n                    \"route\": \"/platforms/:platform/known-hosts/:host_address-:host_port\",\n                    \"record\": {\n                        \"port\": \"<port>\",\n                        \"key\": \"<server_key>\"\n                    },\n                ...\n        }\n        ```\n* With valid BEARER token on failure: `400 Bad Request`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"error\": \"<Error Message>\"\n        }\n        ```\n* With invalid BEARER token: `401 Unauthorized`"
+							},
+							"response": []
+						},
+						{
+							"name": "/platforms/:platform/known-hosts",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "/platforms/:platform/known-hosts",
+									"path": [
+										"platforms",
+										":platform",
+										"known-hosts"
+									],
+									"variable": [
+										{
+											"key": "platform",
+											"value": ""
+										}
+									]
+								},
+								"description": "Create a new known-host record for another platform known to the specified platform.\n\nThe `Location` header will return a route to the new resource, with `:known-host` having the format `:address-:port`.\n\n> &#x26a0;&#xfe0f; The colon is a reserved character in a URI. The path `known-hosts` variable is delimited by a dash: e.g.: `:address-:port`.\n\n**Request:**\n* Authorization: `BEARER <jwt_token>`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"address\": \"<address>\",\n            \"port\": \"<port>\",\n            \"key\": \"<server_key>\"\n        },\n        ```\n\n**Response:**\n* With valid BEARER token on success: `201 Created`\n    * Location: `/platforms/:platform/known-hosts/:known-host`\n\n* With valid BEARER token on failure: `400 Bad Request`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"error\": \"<Error Message>\"\n        }\n        ```\n* With invalid BEARER token: `401 Unauthorized`"
+							},
+							"response": []
+						},
+						{
+							"name": "/platforms/:platform/known-hosts/:known-host",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "/platforms/:platform/known-hosts/:known-host",
+									"path": [
+										"platforms",
+										":platform",
+										"known-hosts",
+										":known-host"
+									],
+									"variable": [
+										{
+											"key": "platform",
+											"value": ""
+										},
+										{
+											"key": "known-host",
+											"value": ""
+										}
+									]
+								},
+								"description": "Retrieve the address, port, and server keys of another platform known to the specified platform.\n\n> &#x26a0;&#xfe0f; The colon is a reserved character in a URI. The path `known-hosts` variable is delimited by a dash: e.g.: `:address-:port`.\n\n**Request:**\n* Authorization: `BEARER <jwt_token>`\n\n**Response:**\n* With valid BEARER token on success: `200 OK`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"address\": \"<address>\",\n            \"port\": \"<port>\",\n            \"key\": \"<server_key>\"\n        },\n        ```\n* With valid BEARER token on failure: `400 Bad Request`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"error\": \"<Error Message>\"\n        }\n        ```\n* With invalid BEARER token: `401 Unauthorized`"
+							},
+							"response": []
+						},
+						{
+							"name": "/platforms/:platform/known-hosts/:known-host",
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"url": {
+									"raw": "/platforms/:platform/known-hosts/:known-host",
+									"path": [
+										"platforms",
+										":platform",
+										"known-hosts",
+										":known-host"
+									],
+									"variable": [
+										{
+											"key": "platform",
+											"value": ""
+										},
+										{
+											"key": "known-host",
+											"value": ""
+										}
+									]
+								},
+								"description": "Update the address, port, and server keys of another platform known to the specified platform.\n\n> &#x26a0;&#xfe0f; The colon is a reserved character in a URI. The path `known-hosts` variable is delimited by a dash: e.g.: `:address-:port`.\n\n**Request:**\n* Authorization: `BEARER <jwt_token>`\n* Content Type: `application/json`\n* Body:\n    ```\n    {\n        \"address\": \"<address>\",\n        \"port\": \"<port>\",\n        \"key\": \"<server_key>\"\n    },\n    ```\n\n**Response:**\n* With valid BEARER token on success: `200 OK`\n\n* With valid BEARER token on failure: `400 Bad Request`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"error\": \"<Error Message>\"\n        }\n        ```\n* With invalid BEARER token: `401 Unauthorized`"
+							},
+							"response": []
+						},
+						{
+							"name": "/platforms/:platform/known-hosts/:known-host",
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "/platforms/:platform/known-hosts/:known-host",
+									"path": [
+										"platforms",
+										":platform",
+										"known-hosts",
+										":known-host"
+									],
+									"variable": [
+										{
+											"key": "platform",
+											"value": ""
+										},
+										{
+											"key": "known-host",
+											"value": ""
+										}
+									]
+								},
+								"description": "Remove the known-host record of another platform known to the specified platform.\n\n> &#x26a0;&#xfe0f; The colon is a reserved character in a URI. The path `known-hosts` variable is delimited by a dash: e.g.: `:address-:port`.\n\n**Request:**\n* Authorization: `BEARER <jwt_token>`\n\n**Response:**\n* With valid BEARER token on success: `204 No Content`\n\n* With valid BEARER token on failure: `400 Bad Request`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"error\": \"<Error Message>\"\n        }\n        ```\n* With invalid BEARER token: `401 Unauthorized`"
+							},
+							"response": []
+						}
+					],
+					"description": "Platform Known-Hosts endpoints expose functionality regarding authentication of other VOLTTRON instances known to a VOLTTRON platform.\n\n* All Agent Control endpoints require a JWT bearer token obtained through the `POST /authenticate` or `PUT /authenticate` endpoints.",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "9fb7b3e1-d630-433e-a3db-3e9f3a2425b4",
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "645fc40f-0423-442a-b466-c8234d52f815",
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
+						}
+					],
+					"protocolProfileBehavior": {},
+					"_postman_isSubFolder": true
+				},
+				{
+					"name": "Roles",
+					"item": [
+						{
+							"name": "/platforms/:platform/roles",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "/platforms/:platform/roles",
+									"path": [
+										"platforms",
+										":platform",
+										"roles"
+									],
+									"query": [
+										{
+											"key": "records",
+											"value": "false",
+											"disabled": true
+										}
+									],
+									"variable": [
+										{
+											"key": "platform",
+											"value": ""
+										}
+									]
+								},
+								"description": "Retrieve routes to the role records on the specified platform.\n\nTo retrieve the records for all roles on the platform, set the `records` query parameter to true.\n\n**Request:**\n* Authorization: `BEARER <jwt_token>`\n\n**Response:**\n* With valid BEARER token on success: `200 OK`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"<role>\": \"/platforms/:platform/roles/:role\",\n            \"<role>\": \"/platforms/:platform/roles/:role\",\n            ...\n        }\n        ```\n    * Body (with records=true):\n        ``` \n        {\n            \"<role>\": {\n                \"route\":  \"/platforms/:platform/roles/:role\",\n                \"capabilities\": [<capability>, <capability>, ...]\n                },\n            \"<role>\": {\n                \"route\":  \"/platforms/:platform/roles/:role\",\n                \"capabilities\": [<capability>, <capability>, ...]\n                },\n            ...\n        }\n        ```\n* With valid BEARER token on failure: `400 Bad Request`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"error\": \"<Error Message>\"\n        }\n        ```\n* With invalid BEARER token: `401 Unauthorized`"
+							},
+							"response": []
+						},
+						{
+							"name": "/platforms/:platform/roles",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "/platforms/:platform/roles",
+									"path": [
+										"platforms",
+										":platform",
+										"roles"
+									],
+									"variable": [
+										{
+											"key": "platform",
+											"value": ""
+										}
+									]
+								},
+								"description": "Create a new role on the specified platform.\n\nThe route to the new resource will be returned in the `Location` header of the response.\n\n**Request:**\n* Authorization: `BEARER <jwt_token>`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"role_name\": \"<role>\",\n            \"capabilities\": [\n                \"<capability>\",\n                \"<capability>\",\n                ...\n            ]\n        }\n        ```\n\n**Response:**\n* With valid BEARER token on success: `201 Created`\n    * Location: `/platforms/:platform/roles/:role`\n\n* With valid BEARER token on failure: `400 Bad Request`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"error\": \"<Error Message>\"\n        }\n        ```\n* With invalid BEARER token: `401 Unauthorized`"
+							},
+							"response": []
+						},
+						{
+							"name": "/platforms/:platform/roles/:role",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "/platforms/:platform/roles/:role",
+									"path": [
+										"platforms",
+										":platform",
+										"roles",
+										":role"
+									],
+									"variable": [
+										{
+											"key": "platform",
+											"value": ""
+										},
+										{
+											"key": "role",
+											"value": ""
+										}
+									]
+								},
+								"description": "Retrieve the capabilities assigned to a role on the specified platform.\n\n**Request:**\n* Authorization: `BEARER <jwt_token>`\n\n**Response:**\n* With valid BEARER token on success: `200 OK`\n    * Content Type: `application/json`\n    * Body:\n        ```\n            [\n                <capability>,\n                <capability>,\n                ...\n            ]\n        ```\n* With valid BEARER token on failure: `400 Bad Request`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"error\": \"<Error Message>\"\n        }\n        ```\n* With invalid BEARER token: `401 Unauthorized`"
+							},
+							"response": []
+						},
+						{
+							"name": "/platforms/:platform/roles/:role",
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"url": {
+									"raw": "/platforms/:platform/roles/:role",
+									"path": [
+										"platforms",
+										":platform",
+										"roles",
+										":role"
+									],
+									"variable": [
+										{
+											"key": "platform",
+											"value": ""
+										},
+										{
+											"key": "role",
+											"value": ""
+										}
+									]
+								},
+								"description": "Update an existing role on the specified platform.\n\n**Request:**\n* Authorization: `BEARER <jwt_token>`\n    * Content Type: `application/json`\n    * Body:\n        ```\n            [\n                \"<capability>\",\n                \"<capability>\",\n                ...\n            ]\n        ```\n\n**Response:**\n* With valid BEARER token on success: `204 No Content`\n\n* With valid BEARER token on failure: `400 Bad Request`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"error\": \"<Error Message>\"\n        }\n        ```\n* With invalid BEARER token: `401 Unauthorized`"
+							},
+							"response": []
+						},
+						{
+							"name": "/platforms/:platform/roles/:role",
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "/platforms/:platform/roles/:role",
+									"path": [
+										"platforms",
+										":platform",
+										"roles",
+										":role"
+									],
+									"variable": [
+										{
+											"key": "platform",
+											"value": ""
+										},
+										{
+											"key": "role",
+											"value": ""
+										}
+									]
+								},
+								"description": "Remove a role from the specified platform.\n\n**Request:**\n* Authorization: `BEARER <jwt_token>`\n\n**Response:**\n* With valid BEARER token on success: `204 No Content`\n\n* With valid BEARER token on failure: `400 Bad Request`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"error\": \"<Error Message>\"\n        }\n        ```\n* With invalid BEARER token: `401 Unauthorized`"
+							},
+							"response": []
+						}
+					],
+					"description": "Platform Roles endpoints expose functionality related to roles which provide authorization for certain functionality exported by VOLTTRON agents.\n\nRoles contain a set of capabilities which grant access to protected resources.\n\n* All Agent Control endpoints require a JWT bearer token obtained through the `POST /authenticate` or `PUT /authenticate` endpoints.",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "d9af6dfb-442f-4e1f-ae10-974832c9ae22",
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "f33d5a10-c8df-4fc3-a501-61ce31357128",
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
+						}
+					],
+					"protocolProfileBehavior": {},
+					"_postman_isSubFolder": true
+				},
+				{
+					"name": "Groups",
+					"item": [
+						{
+							"name": "/platforms/:platform/groups",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "/platforms/:platform/groups",
+									"path": [
+										"platforms",
+										":platform",
+										"groups"
+									],
+									"query": [
+										{
+											"key": "records",
+											"value": "false",
+											"disabled": true
+										}
+									],
+									"variable": [
+										{
+											"key": "platform",
+											"value": ""
+										}
+									]
+								},
+								"description": "Retrieve routes to the group records on the specified platform.\n\nTo retrieve the records for all groups on the platform, set the `records` query parameter to true.\n\n**Request:**\n* Authorization: `BEARER <jwt_token>`\n\n**Response:**\n* With valid BEARER token on success: `200 OK`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"<group>\": \"/platforms/:platform/groups/:group\",\n            \"<group>\": \"/platforms/:platform/groups/:group\",\n            ...\n        }\n        ```\n    * Body (with records=true):\n        ``` \n        {\n            \"<group>\": {\n                \"route\":  \"/platforms/:platform/groups/:group\",\n                \"capabilities\": [<role>, <role>, ...]\n                },\n            \"<group>\": {\n                \"route\":  \"/platforms/:platform/groups/:group\",\n                \"capabilities\": [<role>, <role>, ...]\n                },\n            ...\n        }\n        ```\n* With valid BEARER token on failure: `400 Bad Request`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"error\": \"<Error Message>\"\n        }\n        ```\n* With invalid BEARER token: `401 Unauthorized`"
+							},
+							"response": []
+						},
+						{
+							"name": "/platforms/:platform/groups",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "/platforms/:platform/groups",
+									"path": [
+										"platforms",
+										":platform",
+										"groups"
+									],
+									"variable": [
+										{
+											"key": "platform",
+											"value": ""
+										}
+									]
+								},
+								"description": "Create a new group on the specified platform.\n\nThe route to the new resource will be returned in the `Location` header of the response.\n\n**Request:**\n* Authorization: `BEARER <jwt_token>`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"group_name\": \"<group>\",\n            \"roles\": {\n                <role>,\n                <role>,\n                ...\n            }\n        }\n        ```\n\n**Response:**\n* With valid BEARER token on success: `201 Created`\n    * Location: `/platforms/:platform/groups/:group`\n\n* With valid BEARER token on failure: `400 Bad Request`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"error\": \"<Error Message>\"\n        }\n        ```\n* With invalid BEARER token: `401 Unauthorized`"
+							},
+							"response": []
+						},
+						{
+							"name": "/platforms/:platform/groups/:group",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "/platforms/:platform/groups/:group",
+									"path": [
+										"platforms",
+										":platform",
+										"groups",
+										":group"
+									],
+									"variable": [
+										{
+											"key": "platform",
+											"value": ""
+										},
+										{
+											"key": "group",
+											"value": ""
+										}
+									]
+								},
+								"description": "Retrieve the capabilities assigned to a group on the specified platform.\n\n**Request:**\n* Authorization: `BEARER <jwt_token>`\n\n**Response:**\n* With valid BEARER token on success: `200 OK`\n    * Content Type: `application/json`\n    * Body:\n        ```\n            [\n                <role>,\n                <role>,\n                ...\n            ]\n        ```\n* With valid BEARER token on failure: `400 Bad Request`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"error\": \"<Error Message>\"\n        }\n        ```\n* With invalid BEARER token: `401 Unauthorized`"
+							},
+							"response": []
+						},
+						{
+							"name": "/platforms/:platform/groups/:group",
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"url": {
+									"raw": "/platforms/:platform/groups/:group",
+									"path": [
+										"platforms",
+										":platform",
+										"groups",
+										":group"
+									],
+									"variable": [
+										{
+											"key": "platform",
+											"value": ""
+										},
+										{
+											"key": "group",
+											"value": ""
+										}
+									]
+								},
+								"description": "Update an existing group on the specified platform.\n\n**Request:**\n* Authorization: `BEARER <jwt_token>`\n    * Content Type: `application/json`\n    * Body:\n        ```\n            [\n                <role>,\n                <role>,\n            ...\n            ]\n        ```\n\n**Response:**\n* With valid BEARER token on success: `204 No Content`\n\n* With valid BEARER token on failure: `400 Bad Request`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"error\": \"<Error Message>\"\n        }\n        ```\n* With invalid BEARER token: `401 Unauthorized`"
+							},
+							"response": []
+						},
+						{
+							"name": "/platforms/:platform/groups/:group",
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "/platforms/:platform/groups/:group",
+									"path": [
+										"platforms",
+										":platform",
+										"groups",
+										":group"
+									],
+									"variable": [
+										{
+											"key": "platform",
+											"value": ""
+										},
+										{
+											"key": "group",
+											"value": ""
+										}
+									]
+								},
+								"description": "Remove a group from the specified platform.\n\n**Request:**\n* Authorization: `BEARER <jwt_token>`\n\n**Response:**\n* With valid BEARER token on success: `204 No Content`\n\n* With valid BEARER token on failure: `400 Bad Request`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"error\": \"<Error Message>\"\n        }\n        ```\n* With invalid BEARER token: `401 Unauthorized`"
+							},
+							"response": []
+						}
+					],
+					"description": "Platform Groups endpoints expose functionality related to authorization groups within the VOLTTRON platform.\n\nGroups contain a set of roles, which in turn contain sets of capabilities which grant authorization for protected services exported by agents.\n\n* All Agent Control endpoints require a JWT bearer token obtained through the `POST /authenticate` or `PUT /authenticate` endpoints.",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "a8f45c05-fcea-470c-8517-15b0952899e8",
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "7515abdc-4676-4c82-80d1-5e176675cd76",
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
+						}
+					],
+					"protocolProfileBehavior": {},
+					"_postman_isSubFolder": true
+				},
+				{
+					"name": "Historians",
+					"item": [
+						{
+							"name": "/historians",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": "/platform/:platform/historians",
+								"description": "Retrieve routes to historians on the platform.\n\n**Request:**\n* Authorization: `BEARER <jwt_token>`\n\n\n**Response:**\n* With valid BEARER token on success: `200 OK`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"<vip_identity>\": \"/platform/historians/:historian\",\n            \"<vip_identity>\": \"/platform/historians/:historian\",\n            ...\n        }\n        ```\n* With valid BEARER token on failure: `400 Bad Request`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"error\": \"<Error Message>\"\n        }\n        ```\n* With invalid BEARER token: `401 Unauthorized`"
+							},
+							"response": []
+						},
+						{
+							"name": "/platforms/:platform/historians/:historian",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/platforms/:platform/historians/:historian",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"platforms",
+										":platform",
+										"historians",
+										":historian"
+									],
+									"variable": [
+										{
+											"key": "platform",
+											"value": ""
+										},
+										{
+											"key": "historian",
+											"value": ""
+										}
+									]
+								},
+								"description": "Retrieve routes for an historian.\n\n**Request:**\n* Authorization: `BEARER <jwt_token>`\n\n**Response:**\n* With valid BEARER token on success: `200 OK`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"topics\": \"/platforms/:platform/historians/:historian/topics\",\n            \"metatdata\": \"/platforms/:platform/historians/:historian/metadata\",\n            \"records\": \"/platforms/:platform/historians/:historian/records\"\n        }\n        ```\n* With valid BEARER token on failure: `400 Bad Request`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"error\": \"<Error Message>\"\n        }\n        ```\n* With invalid BEARER token: `401 Unauthorized`"
+							},
+							"response": []
+						},
+						{
+							"name": "/platforms/:platform/historians/:historian/topics",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "/platforms/:platform/historians/:historian/topics",
+									"path": [
+										"platforms",
+										":platform",
+										"historians",
+										":historian",
+										"topics"
+									],
+									"query": [
+										{
+											"key": "pattern",
+											"value": "null",
+											"disabled": true
+										},
+										{
+											"key": "aggregate",
+											"value": "false",
+											"disabled": true
+										}
+									],
+									"variable": [
+										{
+											"key": "platform",
+											"value": ""
+										},
+										{
+											"key": "historian",
+											"value": ""
+										}
+									]
+								},
+								"description": "Query topics from the historian.\n\nBy default, the response will contain all topics in the historian. The `pattern` query parameter may be used to filter the results. The `aggregate` query parameter may be used to retreive aggregate topics.\n\n**Request:**\n* Authorization: `BEARER <jwt_token>`\n\n**Response:**\n* With valid BEARER token on success: `200 OK`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"<topic>\": {\"id\": <id>, \"route\": \"/platforms/:platform/historians/:historian/topics/:topic\"},\n            \"<topic>\": {\"id\": <id>, \"route\": \"/platforms/:platform/historians/:historian/topics/:topic\"},\n            ...\n        }\n        ```\n    * Body (with `aggregate`):\n        ```\n        [\n            {\"topic_name\": <topic>, \"aggregation_type\": <aggregation_type>, \"aggregation_time_period\": <aggregation_time_period>, \"metadata\": <metadata>}\n            {\"topic_name\": <topic>, \"aggregation_type\": <aggregation_type>, \"aggregation_time_period\": <aggregation_time_period>, \"metadata\": <metadata>}\n            ...\n        ]\n        ```\n\n* With valid BEARER token on failure: `400 Bad Request`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"error\": \"<Error Message>\"\n        }\n        ```\n* With invalid BEARER token: `401 Unauthorized`"
+							},
+							"response": []
+						},
+						{
+							"name": "/platforms/:platform/historians/:historian/topics/:topic",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "/platforms/:platform/historians/:historian/topics/:topic",
+									"path": [
+										"platforms",
+										":platform",
+										"historians",
+										":historian",
+										"topics",
+										":topic"
+									],
+									"query": [
+										{
+											"key": "start",
+											"value": "null",
+											"disabled": true
+										},
+										{
+											"key": "end",
+											"value": "null",
+											"disabled": true
+										},
+										{
+											"key": "skip",
+											"value": "null",
+											"disabled": true
+										},
+										{
+											"key": "count",
+											"value": "null",
+											"disabled": true
+										},
+										{
+											"key": "order",
+											"value": "null",
+											"disabled": true
+										}
+									],
+									"variable": [
+										{
+											"key": "historian",
+											"value": ""
+										},
+										{
+											"key": "topic",
+											"value": ""
+										}
+									]
+								},
+								"description": "Query data for a topic.\n\nSeveral query parameters may be used to refine the results:\n\n* start: datetime of the start of the query. None for the beginning of time.\n* end: datetime of the end of of the query. None for the end of time.\n* skip: skip this number of results (for pagination)\n* count: return at maximum this number of results (for pagination)\n* order: “FIRST_TO_LAST” for ascending time stamps, “LAST_TO_FIRST” for descending time stamps.\n\n**Request:**\n* Authorization: `BEARER <jwt_token>`\n\n**Response:**\n* With valid BEARER token on success: `200 OK`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"values\": [\n                {\"datetime\": <datetime>: \"value: <value>},\n                {\"datetime\": <datetime>: \"value: <value>},\n        '       ...\n            ],\n        '   \"metadata\": {\n                \"key1\": value1,\n        '       \"key2\": value2,\n        '        ...\n            }\n        }\n        ```\n* With valid BEARER token on failure: `400 Bad Request`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"error\": \"<Error Message>\"\n        }\n        ```\n* With invalid BEARER token: `401 Unauthorized`"
+							},
+							"response": []
+						},
+						{
+							"name": "/platforms/:platform/historians/:historian/topics/:topic",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "/platforms/:platform/historians/:historian/topics/:topic",
+									"path": [
+										"platforms",
+										":platform",
+										"historians",
+										":historian",
+										"topics",
+										":topic"
+									],
+									"query": [
+										{
+											"key": "start",
+											"value": "null",
+											"disabled": true
+										},
+										{
+											"key": "end",
+											"value": "null",
+											"disabled": true
+										},
+										{
+											"key": "skip",
+											"value": "null",
+											"disabled": true
+										},
+										{
+											"key": "count",
+											"value": "null",
+											"disabled": true
+										},
+										{
+											"key": "order",
+											"value": "null",
+											"disabled": true
+										}
+									],
+									"variable": [
+										{
+											"key": "platform",
+											"value": ""
+										},
+										{
+											"key": "historian",
+											"value": ""
+										},
+										{
+											"key": "topic",
+											"value": ""
+										}
+									]
+								},
+								"description": "Insert records into the historian.\n\nThe request body should contain a list of JSON objects matching the format of the record type being inserted (e.g.: record, analysis, datalogger, devices).\n\n**Request:**\n* Authorization: `BEARER <jwt_token>`\n* Content Type: `application/json`\n* Body:\n\t```\n    [\n        {\n        <record>\n\t    }\n    ]\n\t```\n\n**Response:**\n* With valid BEARER token on success: `201 Created`\n\n* With valid BEARER token on failure: `400 Bad Request`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"error\": \"<Error Message>\"\n        }\n        ```\n* With invalid BEARER token: `401 Unauthorized`"
+							},
+							"response": []
+						}
+					],
+					"description": "Platform Historian endpoints expose functionality related to historians running on a VOLTTRON platform.\n\n* All Agent Control endpoints require a JWT bearer token obtained through the `POST /authenticate` or `PUT /authenticate` endpoints.",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "0ca194e6-e1d5-4a2d-95fa-381b27e102af",
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "825fff06-2f73-493b-93fa-558359e5d7a4",
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
+						}
+					],
+					"protocolProfileBehavior": {},
+					"_postman_isSubFolder": true
+				},
+				{
+					"name": "/platforms",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "text"
+								}
+							}
+						},
+						"url": "{{base_url}}/platforms",
+						"description": "Get routes for connected platforms.\n\n**Request:**\n* Authorization: `BEARER <jwt_token>`\n\n**Response:**\n* With valid BEARER token on success: `200 OK`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"<platform>\": \"/platforms/:platform\",\n            \"<platform>\": \"/platforms/:platform\",\n            ...\n        }\n        ```\n* With valid BEARER token on failure: `400 Bad Request`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"error\": \"<Error Message>\"\n        }\n        ```\n* With invalid BEARER token: `401 Unauthorized`"
+					},
+					"response": []
+				},
+				{
+					"name": "/platforms",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "text"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/platforms",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"platforms"
+							],
+							"query": [
+								{
+									"key": "platform",
+									"value": "false",
+									"disabled": true
+								}
+							]
+						},
+						"description": "Stop all agents on all connected platforms.\n\n> &#x26a0;&#xfe0f; When the request is sent with the `platfroms=true` query parameter, this will stop the platforms themselves. This is not generally recommended, as there is currently no way to restart the platforms through the API.\n\n**Request:**\n* Authorization: `BEARER <jwt_token>`\n\n**Response:**\n* With valid BEARER token on success: `204 No Content`\n\n* With valid BEARER token on failure: `400 Bad Request`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"error\": \"<Error Message>\"\n        }\n        ```\n* With invalid BEARER token: `401 Unauthorized`"
+					},
+					"response": []
+				},
+				{
+					"name": "/platforms/:platform",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/platforms/:platform",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"platforms",
+								":platform"
+							],
+							"variable": [
+								{
+									"key": "platform",
+									"value": "sekhmet"
+								}
+							]
+						},
+						"description": "Return information about the platform and routes to related endpoints.\n\n**Request:**\n* Authorization: `BEARER <jwt_token>`\n\n**Response:**\n* With valid BEARER token on success: `200 OK`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"status\": \"/platforms/:platform/status\",\n            \"health\": \"/platforms/:platform/health\",\n            \"agents\": {\n                \"vip_identity\": \"/platforms/:platform/agents/:vip_identity\",\n                \"vip_identity\": \"/platforms/:platform/agents/:vip_identity\",\n                ...\n                },\n            \"configs\": {\n                \"<config_name>: \"/platforms/:platform/configs/:config_name\",\n                \"<config_name>: \"/platforms/:platform/configs/:config_name\",\n                ...\n                }\n        }\n        ```\n* With valid BEARER token on failure: `400 Bad Request`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"error\": \"<Error Message>\"\n        }\n        ```\n* With invalid BEARER token: `401 Unauthorized`"
+					},
+					"response": []
+				},
+				{
+					"name": "/platforms/:platform",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/platforms/:platform",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"platforms",
+								":platform"
+							],
+							"query": [
+								{
+									"key": "platform",
+									"value": "false",
+									"disabled": true
+								}
+							],
+							"variable": [
+								{
+									"key": "platform",
+									"value": "sekhmet"
+								}
+							]
+						},
+						"description": "Stop all agents on the platform.\n\n> &#x26a0;&#xfe0f; When the request is sent with the `platfroms=true` query parameter, this will stop the platform itself. This is not generally recommended, as there is currently no way to restart the platform through the API.\n\n**Request:**\n* Authorization: `BEARER <jwt_token>`\n\n**Response:**\n* With valid BEARER token on success: `204 No Content`\n\n* With valid BEARER token on failure: `400 Bad Request`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"error\": \"<Error Message>\"\n        }\n        ```\n* With invalid BEARER token: `401 Unauthorized`"
+					},
+					"response": []
+				}
+			],
+			"description": "Platforms endpoints expose functionality associated with specific VOLTTRON platforms.\n\nAs all functionality of VOLTTRON is the purvue of one or another platform, the /platforms tree forms the core of the VOLTTRON User Interface API. Other top level partitions of the API consist of convenience methods which refer to endpoints within /platforms.\n\n* All endpoints in this tree require authentication using a JWT bearer token provided by the `POST /authenticate` or `PUT /authenticate` endpoints.",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "1b1a675d-6961-4d1a-99f7-afadaf90333b",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "f11b8c2e-1e04-45b6-9d0a-c13274e9ce38",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "Devices",
+			"item": [
+				{
+					"name": "/devices",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "{{base_url}}/devices",
+						"description": "Get routes to all devices for all connected platforms.\n\nIn the case where a device with the same topic appears on multiple platforms, the value for that topic in the result will be a list of routes where each element is the route to the device topic on on of the platforms where it appears.\n\n**Request:**\n* Authorization: `BEARER <jwt_token>`\n\n**Response:**\n* With valid BEARER token on success: `200 OK`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"<topic>\": \"/platform/:platform/devices/:topic\",\n            \"<topic>\": [\n                        \"/platform/:platform/devices/:topic\",\n                        \"/platform/:platform/devices/:topic\",\n                       ]\n            ...\n        }\n        ```\n* With valid BEARER token on failure: `400 Bad Request`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"error\": \"<Error Message>\"\n        }\n        ```\n* With invalid BEARER token: `401 Unauthorized`"
+					},
+					"response": []
+				},
+				{
+					"name": "/devices/:topic",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/devices/:topic",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"devices",
+								":topic"
+							],
+							"variable": [
+								{
+									"key": "topic",
+									"value": ""
+								}
+							]
+						},
+						"description": "Get routes matching a topic for devices for all connected platforms.\n\n> **Note:** Platform Device endpoints accept query parameters to refine their output, as described in the introduction to the Devices section.\n\n> **Note:** See the introduction to the Devices section for information on the use of topics.\n\nProviding a partial topic returns all devices which share the given segements of the provided topic. Using a partial topic: `/:campus/:building` will produce the same dictionary as the response of `GET /devices/` but with only the topics beginning with the segments `:campus` and `:building`.\n\nProviding a full topic will usually produce a single result, except where more than one connected platform has the same topic, in which case the result will be the list of routes to that topic on each containing platform.\n\nIn the case where a device with the same topic appears on multiple platforms, the value for that topic in the result will be a list of routes where each element is the route to the device topic on on of the platforms where it appears.\n\n**Request:**\n* Authorization: `BEARER <jwt_token>`\n\n**Response:**\n* With valid BEARER token on success: `200 OK`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"<topic>\": \"/platform/:platform/devices/:topic\",\n            \"<topic>\": [\n                        \"/platform/:platform/devices/:topic\",\n                        \"/platform/:platform/devices/:topic\",\n                       ]\n            ...\n        }\n        ```\n* With valid BEARER token on failure: `400 Bad Request`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"error\": \"<Error Message>\"\n        }\n        ```\n* With invalid BEARER token: `401 Unauthorized`"
+					},
+					"response": []
+				},
+				{
+					"name": "/devices/:topic",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/devices/:topic",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"devices",
+								":topic"
+							],
+							"variable": [
+								{
+									"key": "topic",
+									"value": ""
+								}
+							]
+						},
+						"description": "Sets the value of the specified point(s) and returns its new value(s) and meta-data.\n\n> **Note:** Device endpoints accept query parameters to refine their output, as described in the introduction to the Devices section.\n\n> **Note:** See the introduction to the Devices section for information on the use of topics.\n\nIf an attempt is made to set a point which is not writable, the response will be `405 Method Not Allowed`.\n\nIf the request uses partial topics and/or query parameters to select more than one point to set, the query parameter `write-all` must be set. If `write-all` is not set, the request will fail with `405 Method Not Allowed`. The request will also fail unless all writes are successful, and any points which would otherwise be set will be reverted to their previous value.\n\n**Request:**\n* Authorization: `BEARER <jwt_token>`\n* Content Type: `application/json`\n* Body:\n\t```\n\t{\n\t    \"value\": <value>\n\t}\n\t```\n\n**Response:**\n* With valid BEARER token on success: `200 OK`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"value\": <new_value>,\n            \"meta\": <meta_data>       \n        }\n        ```\n* With valid BEARER token if any point is not writable: `405 Method Not Allowed`:\n    * Conent Type: `application/json`\n    * Body:\n        ```\n        {\n            \"error\": \"<Error Message indicating unwritable points>\"\n        }\n        ```\n* With valid BEARER token on any other failure: `400 Bad Request`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"error\": \"<Error Message>\"\n        }\n        ```\n* With invalid BEARER token: `401 Unauthorized`"
+					},
+					"response": []
+				},
+				{
+					"name": "/devices/:topic",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/devices/:topic",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"devices",
+								":topic"
+							],
+							"variable": [
+								{
+									"key": "topic",
+									"value": ""
+								}
+							]
+						},
+						"description": "Resets the value of the specified point(s) and returns its new value(s) and meta-data.\n\n> **Note:** Device endpoints accept query parameters to refine their output, as described in the introduction to the Devices section.\n\n> **Note:** See the introduction to the Devices section for information on the use of topics.\n\nIf an attempt is made to set a point which is not writable, the response will be `405 Method Not Allowed`.\n\nIf the request uses partial topics and/or query parameters to select more than one point to set, the query parameter `write-all` must be set. If `write-all` is not set, the request will fail with `405 Method Not Allowed`. The request will also fail unless all writes are successful, and any points which would otherwise be set will be reverted to their previous value.\n\n**Request:**\n* Authorization: `BEARER <jwt_token>`\n\n**Response:**\n* With valid BEARER token on success: `200 OK`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"value\": <new_value>,\n            \"meta\": <meta_data>       \n        }\n        ```\n* With valid BEARER token if any point is not writable: `405 Method Not Allowed`:\n    * Conent Type: `application/json`\n    * Body:\n        ```\n        {\n            \"error\": \"<Error Message indicating unwritable points>\"\n        }\n        ```\n* With valid BEARER token on any other failure: `400 Bad Request`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"error\": \"<Error Message>\"\n        }\n        ```\n* With invalid BEARER token: `401 Unauthorized`"
+					},
+					"response": []
+				},
+				{
+					"name": "/devices/:topic",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/devices/:topic",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"devices",
+								":topic"
+							],
+							"variable": [
+								{
+									"key": "topic",
+									"value": ""
+								}
+							]
+						},
+						"description": "Get routes matching a topic for devices for all connected platforms.\n\n> **Note:** Platform Device endpoints accept query parameters to refine their output, as described in the introduction to the Devices section.\n\n> **Note:** See the introduction to the Platform Devices section for information on the use of topics.\n\nProviding a partial topic returns all devices which share the given segements of the provided topic. Using a partial topic: `/:campus/:building` will produce the same dictionary as the response of `GET /devices/` but with only the topics beginning with the segments `:campus` and `:building`.\n\nProviding a full topic will usually produce a single result, except where more than one connected platform has the same topic, in which case the result will be the list of routes to that topic on each containing platform.\n\nIn the case where a device with the same topic appears on multiple platforms, the value for that topic in the result will be a list of routes where each element is the route to the device topic on on of the platforms where it appears.\n\n**Request:**\n* Authorization: `BEARER <jwt_token>`\n\n**Response:**\n* With valid BEARER token on success: `200 OK`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"<topic>\": \"/platform/:platform/devices/:topic\",\n            \"<topic>\": [\n                        \"/platform/:platform/devices/:topic\",\n                        \"/platform/:platform/devices/:topic\",\n                       ]\n            ...\n        }\n        ```\n* With valid BEARER token on failure: `400 Bad Request`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"error\": \"<Error Message>\"\n        }\n        ```\n* With invalid BEARER token: `401 Unauthorized`"
+					},
+					"response": []
+				},
+				{
+					"name": "/devices/hierarchy",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "{{base_url}}/devices/hierarchy",
+						"description": "Retrieve a topical hierarchy of all devices on all platforms.\n\nThe response provides a dictionary organized hierarchically by segments within the device topic. There is no special meaning to the segments of device topics, but the example response shown here assumes that devices are organized in a pattern common for a campus of buildings: `/:campus/:building/:device/:point`.\n\n> &#x26a0;&#xfe0f; It is not necessary that topics all have the same number of segments, therefore some parts of the tree may be deeper than others. Users should not assume a uniform depth to all branches of the tree. It is also possible that a given level of the tree is not uniformly either a dict or a string. For example, in the third building shown in the example, zone level devices have an extra segment to indicate they are served by a particular air handling unit, however the air handling unit device itself has the normal number of segments.\n\n**Request:**\n* Authorization: `BEARER <jwt_token>`\n\n**Response:**\n* With valid BEARER token on success: `200 OK` `201 Created` `204 No Content`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"<campus>\": {\n                \"<building>\": {\n                    \"<device>\": \"/platforms/:platform/devices/:topic/\",\n                    \"<device>\": \"/platforms/:platform/devices/:topic/\",\n                    ...\n                },\n                \"<building>\"\" {\n                    \"<device>\": \"/platforms/:platform/devices/:topic/\",\n                    \"<device>\": [\n                        \"/platforms/:platform1/devices/:topic/\",\n                        \"/platforms/:platform2/devices/:topic/\",\n                        ...\n                    ],\n                    ...\n                },\n                \"<building>\": {\n                    <ahu_device>: \"/platforms/:platform/devices/:topic/\",\n                    <ahu>: {\n                        \"<zone_device>\": \"/platforms/:platform/devices/:topic/\",\n                        \"<zone_device>\": \"/platforms/:platform/devices/:topic/\",\n                        ...\n                    },\n                    ...\n                },\n                ...\n            },\n            ...\n        }\n        ```\n* With valid BEARER token on failure: `400 Bad Request`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"error\": \"<Error Message>\"\n        }\n        ```\n* With invalid BEARER token: `401 Unauthorized`"
+					},
+					"response": []
+				},
+				{
+					"name": "/devices/hierarchy/:topic",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/devices/hierarchy/:topic",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"devices",
+								"hierarchy",
+								":topic"
+							],
+							"variable": [
+								{
+									"key": "topic",
+									"value": ""
+								}
+							]
+						},
+						"description": "Retrieve a partial topical hierarchy of all devices on all platforms.\n\n> **Note:** Device endpoints accept query parameters to refine their output, as described in the introduction to the Devices section.\n\n> **Note:** See the introduction to the Devices section for information on the use of topics.\n\nAs with the `GET /devices/hierarchy` endpoint, the response provides a dictionary organized hierarchically by segments within the device topic. Providing a partial topic produces a clade of the device tree with its root at the provided topic.\n\nAs elaborated on in the introduction to the Devices section, there is no special meaning to the segments of device topics, but the example response shown here assumes that devices are organized in a pattern common for a campus of buildings: `/:campus/:building/:device/:point`.  Using a partial topic: `/:campus/:building` will produce a the same object which could be obtained by indexing the response of `GET /devices/hierarchy` first with `<campus>` and then n`<device>`, e.g.:\n\n    ```\n        responseObject['<campus>']['<building>']\n    ```\nThe example shown in the response section below is produced by `GET /devices/hierarcy/:campus/:building`, where `:building` has the same value as the second building in the example shown for `GET /devices/hierarchy`.\n\nProviding a full topic will usually produce a single leaf node, except where more than one connected platform has the same topic, in which case the result will be the list of leaf nodes corresponding to that topic on each containing platform.\n\n> &#x26a0;&#xfe0f; It is not necessary that topics all have the same number of segments, therefore some parts of the tree may be deeper than others. Users should not assume a uniform depth to all branches of the tree. It is also possible that a given level of the tree is not uniformly either a dict or a string. For example, in the third building shown in the example, zone level devices have an extra segment to indicate they are served by a particular air handling unit, however the air handling unit device itself has the normal number of segments.\n\n**Request:**\n* Authorization: `BEARER <jwt_token>`\n\n**Response:**\n* With valid BEARER token on success: `200 OK` `201 Created` `204 No Content`\n    * Content Type: `application/json`\n    * Body:\n        ```{\n            \"<device>\": \"/platforms/:platform/devices/:topic/\",\n             \"<device>\": [\n                    \"/platforms/:platform1/devices/:topic/\",\n                    \"/platforms/:platform2/devices/:topic/\",\n                    ...\n                ],\n                ...\n            }\n        }\n        ```\n* With valid BEARER token on failure: `400 Bad Request`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"error\": \"<Error Message>\"\n        }\n        ```\n* With invalid BEARER token: `401 Unauthorized`"
+					},
+					"response": []
+				}
+			],
+			"description": "Devices endpoints expose functionality associted with devices managed by all connected VOLTTRON platforms.\n\n* All Devices endpoints require a JWT bearer token obtained through the `POST /authenticate` or `PUT /authenticate` endpoints.\n\n**Note on the use of topics in Device and Platform Device Requests**\n\nThere is no special meaning to most segements of a topic in the VOLTTRON platform.  Topics typically, however do follow some convention, for instance `:campus/:building/:device/:point`. In the context of devices, however, the final segement in a full topic denotes a point which can be read or actuated. Partial topics (not including the last segment) denote some collection of these point resources. A topic, for instance which is complete up to the `:device` level in the campus example would yield a single device containing one or more points. A topic complete to the `:building` level would include a set of devices, each containing some set of points. The response to any request containing a full topic may differ, therefore, from a partial topic because it contains a complete path to a resource which can be individually queried or acted upon. The exact difference may vary by endpoint, and as dictated by query parameters as described below.\n\nThe `-` character may be used alone to represent any value for a segment: `/:campus/-/:device` will match all devices with the name :device on the :campus in any building.  It is not possible to use `-` as a wildcard within a segment containing other characters: `/campus/foo-bar/:device` will only match a building called \"foo-bar\", not one called \"foobazbar\".\n\n> &#x26a0;&#xfe0f; It is possible that more than one device on several connected systems may share the same topic. In this case, as with the `GET /devices` endpoint, the duplicates will be contained within a list. Users should always check the type of the value to determine if a given value in the dictionary is a string, list, or dict.\n\n**Device and Platform Devices endpoints can accept the following query parameters to refine their output:**\n\n* tag (default=null): Filter the result by the provided tag.\n* regex (default=null): Filter the result by the provided regular expression (follows python re syntax).\n\nGET requests additionally accept:\n\n* include-points (default=false): \n    * If true, the response will return entries for every point. These will be a dictionary of dictionaries with route, writability, and value unless the result is further filtered by the corresponding parameters. If only one of `route`, `writable`, or `value` are additionally provided, the result will be a dictionary of the corresponding item. If none of these are set to true (the default), all will be returned:\n        ```\n        {\n            \"route: <route_to_point>,\n            \"writable\": true|false,\n            \"value\": <value>\n        }\n        ```\n    * If false, the response will consist of a dictionary of routes to devices (the most complete topic without points). `route`, `writable`, and `value` will be ignored.\n* route (default=false): IF true, the result will include the route to the points.\n* writable (default=false): IF true, the result will include the writability of the points.\n* value (default=false): IF true, the result will include the value of the points.\n\n",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "ba2385d8-1361-4f6e-8a9d-e74c1642b868",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "135e7f89-24be-4da5-a5b7-6b38eb7f2f84",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "/keypair",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": "",
+				"description": "Generate a new public/private keypair.\n\n**Request:**\n* Authorization: `BEARER <jwt_token>`\n\n**Response:**\n* With valid BEARER token on success: `200 OK`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"public\": \"<public_key>,\n            \"private\": \"<private_key>\n        }\n        ```\n* With valid BEARER token on failure: `400 Bad Request`\n    * Content Type: `application/json`\n    * Body:\n        ```\n        {\n            \"error\": \"<Error Message>\"\n        }\n        ```\n* With invalid BEARER token: `401 Unauthorized`"
+			},
+			"response": []
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": {
+			"token": "{{token}}"
+		}
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"id": "fa9d6c31-7b05-4a58-9bcb-1f8ef5b73d96",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"id": "751abbdd-506d-49eb-91cb-68aa5e140fdf",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"id": "e6b49efd-d039-4ead-96fe-a32218293db6",
+			"key": "base_url",
+			"value": "localhost:8080"
+		},
+		{
+			"id": "08d33de9-593f-4f77-9051-8bb3139e42c6",
+			"key": "username",
+			"value": ""
+		},
+		{
+			"id": "4611cb98-7a1d-41fb-95e2-7024063e5fdc",
+			"key": "password",
+			"value": ""
+		}
+	],
+	"protocolProfileBehavior": {}
+}
